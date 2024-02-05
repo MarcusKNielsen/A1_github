@@ -92,7 +92,12 @@ ax2.set_ylabel(r'$\log(\Vert \hat{u} - u \Vert) $')
 
 plt.tight_layout()
 
-plt.show()
+#plt.show()
+
+# %% Problem 2a
+
+a_first_c = np.array([-1,0,1])/(2*h)
+
+print("first order:",C(5,a_first_c,1,1))
 
 
-# %%
