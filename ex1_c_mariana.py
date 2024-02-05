@@ -73,11 +73,10 @@ plt.tight_layout()
 
 #%% Problem e
 
-a_forward = [35/12, -104/12, 114/12,-56/12, 11/12]
-a_backward = [11/12,-56/12,114/12,-104/12,35/12]
-a_centered = [-1/12,16/12,-30/12,16/12,-1/12]
-
-h = 1
+h = 0.1
+a_forward = np.array([35/12, -104/12, 114/12,-56/12, 11/12])/(h**2)
+a_backward = np.array([11/12,-56/12,114/12,-104/12,35/12])/(h**2)
+a_centered = np.array([-1/12,16/12,-30/12,16/12,-1/12])/(h**2)
 
 def C(n,a,alpha,beta):
     out = 0
@@ -85,15 +84,14 @@ def C(n,a,alpha,beta):
     if n == 2:
         out -= h**(-n)
     
-    for i,m in enumerate(range(-alpha,beta+1)):
-        
-        out += a[i]*m**n/(math.factorial(n))
+    for a,m in zip(a,range(-alpha,beta+1)):
+        out += a*m**n/(math.factorial(n))
 
     return out 
 
-print([C(i,a_forward,0,4) for i in range(7)])
-print([C(i,a_backward,4,0) for i in range(7)])
-print([C(i,a_centered,-2,2) for i in range(7)])
+print("Forword:",[C(i,a_forward,0,4) for i in range(7)])
+print("Backword:",[C(i,a_backward,4,0) for i in range(7)])
+print("Centered:",[C(i,a_centered,2,2) for i in range(7)])
 
 
 
