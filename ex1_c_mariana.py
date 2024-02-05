@@ -46,10 +46,10 @@ a_forward = np.array([35/12, -104/12, 114/12,-56/12, 11/12])/(h**2)
 a_backward = np.array([11/12,-56/12,114/12,-104/12,35/12])/(h**2)
 a_centered = np.array([-1/12,16/12,-30/12,16/12,-1/12])/(h**2)
 
-def C(n,a,alpha,beta):
+def C(n,a,alpha,beta,dev):
     out = 0
     
-    if n == 2:
+    if n == dev:
         out -= h**(-n)
     
     for a,m in zip(a,range(-alpha,beta+1)):
@@ -57,9 +57,9 @@ def C(n,a,alpha,beta):
 
     return out 
 
-print("Forword:",[C(i,a_forward,0,4) for i in range(7)])
-print("Backword:",[C(i,a_backward,4,0) for i in range(7)])
-print("Centered:",[C(i,a_centered,2,2) for i in range(7)])
+print("Forword:",[C(i,a_forward,0,4,dev=2) for i in range(7)])
+print("Backword:",[C(i,a_backward,4,0,dev=2) for i in range(7)])
+print("Centered:",[C(i,a_centered,2,2,dev=2) for i in range(7)])
 
 #%% Exercise d
 
@@ -98,6 +98,5 @@ plt.tight_layout()
 
 a_first_c = np.array([-1,0,1])/(2*h)
 
-print("first order:",C(5,a_first_c,1,1))
-
+print("first order:",[C(i,a_first_c,alpha=1,beta=1,dev=1) for i in range(7)])
 
