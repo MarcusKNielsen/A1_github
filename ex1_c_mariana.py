@@ -75,6 +75,7 @@ plt.tight_layout()
 
 a_forward = [35/12, -104/12, 114/12,-56/12, 11/12]
 a_backward = [11/12,-56/12,114/12,-104/12,35/12]
+a_centered = [-1/12,16/12,-30/12,16/12,-1/12]
 
 h = 1
 
@@ -92,5 +93,8 @@ def C(n,a,alpha,beta):
 
 print([C(i,a_forward,0,4) for i in range(7)])
 print([C(i,a_backward,4,0) for i in range(7)])
+print([C(i,a_centered,-2,2) for i in range(7)])
 
 
+
+# %%
