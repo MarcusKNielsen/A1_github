@@ -23,7 +23,6 @@ beta = 1.5
 # Parameters
 eps = 0.01
 
-
 #%%
 
 # This is the function 
@@ -35,6 +34,7 @@ def res(U):
         term2 = U[j] * ( (U[j+1] - U[j-1])/(2*h) - 1 )
         
         G[j-1] = term1 + term2
+
     return G
 
 def Jac(U):
@@ -46,9 +46,10 @@ def Jac(U):
             J[i,i-1] = eps/h**2 - U[i]/(2*h)
             
         J[i,i] = -2*eps/h**2 + (U[i+1] - U[i-1])/(2*h) - 1
-    
+        
         if i != m-1:
             J[i,i+1] = eps/h**2 + U[i]/(2*h)
+
     return J
 
 #%%
@@ -62,9 +63,11 @@ U[-1] = beta
 
 # Newtons Method
 tol = 10**(-10)         # Tolerance
-r = 10                  # residual
+r_plot = []             # residual
+r = 10                  # residuals
 k = 0                   # Iteration counter
 MaxIter = 100           # Max number of iterations
+k_plot = []
 
 while r > tol and k < MaxIter:
     
@@ -80,16 +83,25 @@ while r > tol and k < MaxIter:
     U[1:-1] += delta
     
     # Calculate residual
-    r = norm(U-Uold,np.inf)
+    r = (norm(U-Uold,np.inf))
+    r_plot.append(r)
     
     #
+    k_plot.append(k)
     k += 1
+    
 
 #%%
 plt.figure()
 plt.plot(x,U)
 plt.xlabel("x")
 plt.ylabel("U")
+plt.show()
+
+plt.figure()
+plt.plot(k_plot,r_plot)
+plt.xlabel("k")
+plt.ylabel("r")
 plt.show()
 
 """
