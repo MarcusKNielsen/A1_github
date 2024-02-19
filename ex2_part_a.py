@@ -81,6 +81,7 @@ def NewtonsMethod(res,J,U,h,m,tol=10**(-12),MaxIter=100):
         
         # Update iteration counter
         k += 1
+
     return U
 
 U = NewtonsMethod(res,Jac,U,h,m)
@@ -93,11 +94,11 @@ plt.xlabel("x")
 plt.ylabel("U")
 plt.show()
 
-plt.figure()
-plt.plot(k_plot,r_plot)
-plt.xlabel("k")
-plt.ylabel("r")
-plt.show()
+#plt.figure()
+#plt.plot(k_plot,r_plot)
+#plt.xlabel("k")
+#plt.ylabel("r")
+#plt.show()
 
 """
 The plottet solution matches the one in Figure 2.7 page 47 in the book 
@@ -134,13 +135,13 @@ def setup_U(m):
 
 # First we calculate a very fine solution
 N = 6
-m = 8129-2
+m = 8129-2 
 print(f"m={m}")
 x,h,U = setup_U(m)
 Uref = NewtonsMethod(res,Jac,U,h,m)
 err = np.zeros(N)
 H = np.zeros(N)
-k = 1
+k = 1 
 for i in range(N,0,-1):
     m = int((m+1)/2) - 1
     print(f"m={m}")
@@ -149,7 +150,7 @@ for i in range(N,0,-1):
     U = NewtonsMethod(res,Jac,U,h,m)
     err[i-1] = norm(U-Uref[::2**k],np.inf)
     H[i-1] = h
-    k += 1
+    k += 1 
     
 #%%
 a,b = np.polyfit(np.log(H), np.log(err), 1)
