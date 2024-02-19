@@ -134,6 +134,7 @@ def setup_U(m):
 
 
 # First we calculate a very fine solution
+# convergens test
 N = 6
 m = 8129-2 
 print(f"m={m}")
