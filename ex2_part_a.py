@@ -132,7 +132,6 @@ def setup_U(m):
     U[-1] = beta
     return x,h,U
 
-
 # First we calculate a very fine solution
 # convergens test
 N = 6
