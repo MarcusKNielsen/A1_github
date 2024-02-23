@@ -91,9 +91,32 @@ b = vec_b(m)
 print(A1.toarray())
 print(b)
 
+from numpy import linalg
 
+x = np.linspace(0,1,m*m)
+y = np.linspace(0,1,m*m)
 
+u_solution = linalg.solve(A1.toarray(), b)
+u_exact = np.zeros([m,m])
 
+for j in range(m):
+    for i in range(m):
+        u_exact[j,i] = exactfunc(x[j],y[i])
+
+global_err = u_solution - u_exact
+
+import matplotlib as plt
+N = 6
+H = np.zeros(N)
+
+a,b = np.polyfit(np.log(H), np.log(global_err), 1)
+
+plt.figure()
+plt.plot(np.log(H),np.log(global_err),"o-")
+plt.plot(np.log(H),b+a*np.log(H),color="red")
+plt.xlabel(r"$\log(h)$")
+plt.ylabel(r"$\log(E)$")
+plt.show()
 
 
 
