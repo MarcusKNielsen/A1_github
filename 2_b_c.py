@@ -1,7 +1,17 @@
 import numpy as np 
+from scipy.sparse import spdiags, kron, eye
+
 
 def exactfunc(x,y):
     return np.sin(4*np.pi*(x+y))+np.cos(4*np.pi*x*y)
+
+def poissonA(m):
+    e = np.ones(m)
+    S = spdiags([e,-2*e,e], [-1, 0, 1], m, m)
+    I = eye(m)
+    A = kron(I, S) + kron(S, I)
+    #A = (m + 1)**2 * A SKAL VI BRUGE DETTE (DET ER FRA SLIDES??)
+    return A 
 
 def mat_A(m):
 
@@ -29,11 +39,14 @@ def mat_A(m):
 
             # Inserting the current row
             A[j,:] = row
-        
+         
         # Making symmetric
         A = np.tril(A)+np.triu(A.T,1)
 
     return A
+
+def is_less_than(t1, t2):
+    return t1[0] <= t2[0] and t1[1] <= t2[1]
 
 def vec_b(m):
 
@@ -43,40 +56,41 @@ def vec_b(m):
     y = np.linspace(0,1,m+2)
     b = np.zeros(m*m)
 
-    for j in range(m):
-        for i in range(m):
+    for j in range(1,m+1): # x
+        for i in range(1,m+1): # y
 
-            k = i + j*m
+            k = i+m*(j-1)
+
+            point = (j,i)    
 
             # The corners
-            if k == 0: # left bottom corner
-                b[k] = -exactfunc(x[j],y[i+1])/h**2 - exactfunc(x[j+1],y[i])/h**2  
-            elif k == m-1: # right bottem corner
-                b[k] = -exactfunc(x[j+2],y[i+1])/h**2 - exactfunc(x[j+1],y[i])/h**2  
-            elif k == m**2-m: # left upper corner
-                b[k] = -exactfunc(x[j],y[i+1])/h**2 - exactfunc(x[j+1],y[i+2])/h**2 
-            elif k == m**2-1: # right upper corner
-                b[k] = -exactfunc(x[j+2],y[i+2])/h**2 - exactfunc(x[j+1],y[i+2])/h**2  
-            elif k > 0 and k < (m-1): # bottem row
-                b[k] = -exactfunc(x[j+1],y[i])/h**2
-            elif k > m**2-m and k < m**2-1: # upper row
-                b[k] = -exactfunc(x[j+1],y[i+2])/h**2  
-
-            # These are checked after the first if loop
-            # left column
-            if k%m == 0 and b[k] == 0:
-                b[k] = -exactfunc(x[j-1],y[i])/h**2 
-            # right column
-            if (k+1)%m and b[k] == 0: 
-                b[k] = -exactfunc(x[j+1],y[i])/h**2
+            if (1,1) == point: # left bottom corner
+                b[k-1] = -exactfunc(x[j-1],y[i])/h**2 - exactfunc(x[j],y[i-1])/h**2  
+            elif point == (m,1): # right bottem corner
+                b[k-1] = -exactfunc(x[j+1],y[i])/h**2 - exactfunc(x[j],y[i-1])/h**2  
+            elif (1,m) == point: # left upper corner
+                b[k-1] = -exactfunc(x[j-1],y[i])/h**2 - exactfunc(x[j],y[i+1])/h**2 
+            elif point == (m,m): # right upper corner
+                b[k-1] = -exactfunc(x[j+1],y[i])/h**2 - exactfunc(x[j],y[i+1])/h**2  
+            elif is_less_than((1,1),point) and is_less_than(point, (m,1)): # bottem row
+                b[k-1] = -exactfunc(x[j],y[i-1])/h**2
+            elif is_less_than((1,m),point) and is_less_than(point, (m,m)): # upper row
+                b[k-1] = -exactfunc(x[j],y[i+1])/h**2  
+            elif is_less_than((1,1),point) and is_less_than(point,(1,m)):
+                b[k-1] = -exactfunc(x[j-1],y[i])/h**2 # left side 
+            elif is_less_than((m,1),point) and is_less_than(point,(m,m)):
+                b[k-1] = -exactfunc(x[j+1],y[i])/h**2 # right side 
 
     return b
 
+
 m = 5
-A = mat_A(m)  
-print(A) 
+A1 = poissonA(m)
+A2 = mat_A(m)  
 b = vec_b(m)
+print(A1.toarray())
 print(b)
+
 
 
 
