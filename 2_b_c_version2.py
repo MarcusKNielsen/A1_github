@@ -80,7 +80,7 @@ def mat_A(m):
         # Making symmetric
         A = np.tril(A)+np.triu(A.T,1)
 
-    return A
+    return A/h**2
 
 def is_less_than(t1, t2):
     return t1[0] <= t2[0] and t1[1] <= t2[1]
@@ -176,7 +176,7 @@ fig.subplots_adjust(wspace=0.3)
 
 plt.show()
 
-#%%
+#%% Error analysis
 
 from numpy.linalg import norm
 
