@@ -23,7 +23,6 @@ import matplotlib.pyplot as plt
   
 """
 
-
 def exactfunc(x,y):
     return np.sin(4*np.pi*(x+y))+np.cos(4*np.pi*x*y)
 
@@ -93,8 +92,8 @@ def vec_b(m):
     y = np.linspace(0,1,m+2)
     b = np.zeros(m*m)
 
-    for j in range(1,m+1): # y
-        for i in range(1,m+1): # x
+    for j in range(1,m+1): # y 
+        for i in range(1,m+1): # x 
 
             k = i+m*(j-1)
 
@@ -134,7 +133,6 @@ from scipy.sparse.linalg import spsolve # scipy's sparse solver
 
 x = np.linspace(0,1,m+2)
 y = np.linspace(0,1,m+2)
-
 
 u_solution = spsolve(A, b)
 u_solution = u_solution.reshape(m, m)
@@ -182,7 +180,8 @@ from numpy.linalg import norm
 
 N = 6
 H = np.zeros(N)
-E = np.zeros(N)
+E_inf = np.zeros(N)
+E_1 = np.zeros(N)
 
 for i in range(N):
     
@@ -203,13 +202,16 @@ for i in range(N):
 
     u_exact = exactfunc(X,Y)
 
-    E[i] = norm(u_exact-u_solution,np.inf)
+    E_inf[i] = norm(u_exact-u_solution,np.inf)
+    E_1[i] =  H[i]**2*norm(u_exact-u_solution,1)#np.inf)
     
-    
-a,b = np.polyfit(np.log(H), np.log(E), 1)
-
+a,b = np.polyfit(np.log(H), np.log(E_inf), 1)
+print(a)
+a,b = np.polyfit(np.log(H), np.log(E_1), 1)
+print(a)
 plt.figure()
-plt.plot(np.log(H),np.log(E),"o-")
+plt.plot(np.log(H),np.log(E_inf),"o-",color="green")
+plt.plot(np.log(H),np.log(E_1),"o-",color="blue")
 plt.plot(np.log(H),b+a*np.log(H),color="red")
 plt.xlabel(r"$\log(h)$")
 plt.ylabel(r"$\log(E)$")
