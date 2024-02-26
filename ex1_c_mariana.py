@@ -4,7 +4,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 
-
+ 
 #%% Exercise c
 def u(x):
     return math.exp(math.cos(x))
