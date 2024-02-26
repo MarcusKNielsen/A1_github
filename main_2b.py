@@ -47,7 +47,6 @@ err9 = u_exact-u_solution9
 
 #%% Plotting solution 
 
-
 fig, ax = plt.subplots(1, 3, figsize=(14, 4))
 
 cbar_fraction = 0.045

@@ -90,30 +90,30 @@ def poisson_b9(m,correction):
 
             # The corners
             if (1,1) == point: # left bottom corner    
-                b[k-1] = -4*exactfunc(x[i-1],y[j])/(h**2) - 4*exactfunc(x[i],y[j-1])/(h**2) 
-                -exactfunc(x[i-1],y[j-1])/(h**2) -exactfunc(x[i+1],y[j-1])/(h**2)
-                -exactfunc(x[i-1],y[j+1])/(h**2)
+                b[k-1] = -4*exactfunc(x[i-1],y[j])/(6*h**2) - 4*exactfunc(x[i],y[j-1])/(6*h**2) 
+                -exactfunc(x[i-1],y[j-1])/(6*h**2) -exactfunc(x[i+1],y[j-1])/(6*h**2)
+                -exactfunc(x[i-1],y[j+1])/(6*h**2)
             elif point == (m,1): # right bottem corner
-                b[k-1] = -4*exactfunc(x[i+1],y[j])/(h**2) - 4*exactfunc(x[i],y[j-1])/(h**2)
-                -exactfunc(x[i+1],y[j-1])/(h**2) -exactfunc(x[i+1],y[j+1])/(h**2)
-                -exactfunc(x[i-1],y[j-1])/(h**2)  
+                b[k-1] = -4*exactfunc(x[i+1],y[j])/(6*h**2) - 4*exactfunc(x[i],y[j-1])/(6*h**2)
+                -exactfunc(x[i+1],y[j-1])/(6*h**2) -exactfunc(x[i+1],y[j+1])/(6*h**2)
+                -exactfunc(x[i-1],y[j-1])/(6*h**2)  
             elif (1,m) == point: # left upper corner
-                b[k-1] = -4*exactfunc(x[i-1],y[j])/(h**2) - 4*exactfunc(x[i],y[j+1])/(h**2)
-                -exactfunc(x[i-1],y[j-1])/(h**2) -exactfunc(x[i+1],y[j+1])/(h**2)
-                -exactfunc(x[i-1],y[j+1])/(h**2)
+                b[k-1] = -4*exactfunc(x[i-1],y[j])/(6*h**2) - 4*exactfunc(x[i],y[j+1])/(6*h**2)
+                -exactfunc(x[i-1],y[j-1])/(6*h**2) -exactfunc(x[i+1],y[j+1])/(6*h**2)
+                -exactfunc(x[i-1],y[j+1])/(6*h**2)
             elif point == (m,m): # right upper corner
-                b[k-1] = -4*exactfunc(x[i+1],y[j])/(h**2) - 4*exactfunc(x[i],y[j+1])/(h**2) 
-                -exactfunc(x[i-1],y[j+1])/(h**2) -exactfunc(x[i+1],y[j-1])/(h**2)
-                -exactfunc(x[i+1],y[j+1])/(h**2)
+                b[k-1] = -4*exactfunc(x[i+1],y[j])/(6*h**2) - 4*exactfunc(x[i],y[j+1])/(6*h**2) 
+                -exactfunc(x[i-1],y[j+1])/(6*h**2) -exactfunc(x[i+1],y[j-1])/(6*h**2)
+                -exactfunc(x[i+1],y[j+1])/(6*h**2)
 
             elif is_less_than((1,1),point,"edge_b_u") & is_less_than(point,(m,1),"edge_b_u"): # bottem row
-                b[k-1] = -4*exactfunc(x[i],y[j-1])/(h**2) -exactfunc(x[i-1],y[j-1])/(h**2) -exactfunc(x[i+1],y[j-1])/(h**2)   
+                b[k-1] = -4*exactfunc(x[i],y[j-1])/(6*h**2) -exactfunc(x[i-1],y[j-1])/(6*h**2) -exactfunc(x[i+1],y[j-1])/(6*h**2)   
             elif is_less_than((1,m),point,"edge_b_u") & is_less_than(point,(m,m),"edge_b_u"): # upper row
-                b[k-1] = -4*exactfunc(x[i],y[j+1])/(h**2) -exactfunc(x[i-1],y[j+1])/(h**2) -exactfunc(x[i+1],y[j+1])/(h**2) 
+                b[k-1] = -4*exactfunc(x[i],y[j+1])/(6*h**2) -exactfunc(x[i-1],y[j+1])/(6*h**2) -exactfunc(x[i+1],y[j+1])/(6*h**2) 
             elif is_less_than((1,1),point,"edge_l_r") & is_less_than(point,(1,m),"edge_l_r"): # left side
-                b[k-1] = -4*exactfunc(x[i-1],y[j])/(h**2) -exactfunc(x[i-1],y[j-1])/(h**2) -exactfunc(x[i-1],y[j+1])/(h**2)
+                b[k-1] = -4*exactfunc(x[i-1],y[j])/(6*h**2) -exactfunc(x[i-1],y[j-1])/(6*h**2) -exactfunc(x[i-1],y[j+1])/(6*h**2)
             elif is_less_than((m,1),point,"edge_l_r") & is_less_than(point,(m,m),"edge_l_r"): # right side
-                b[k-1] = -4*exactfunc(x[i+1],y[j])/(h**2) -exactfunc(x[i+1],y[j-1])/(h**2) -exactfunc(x[i+1],y[j+1])/(h**2)
+                b[k-1] = -4*exactfunc(x[i+1],y[j])/(6*h**2) -exactfunc(x[i+1],y[j-1])/(6*h**2) -exactfunc(x[i+1],y[j+1])/(6*h**2)
             
             if correction:
                 b[k-1] += f(x[i],y[j]) + h**2/12*f_nab2(x[i],y[j]) # tilføjelse af f i b vektoren
