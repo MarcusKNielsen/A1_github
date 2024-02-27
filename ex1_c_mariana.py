@@ -35,9 +35,22 @@ def d2u_c(h):
     
     return d2u_2
 
+def d2u_c_int(h):
+    x=-h/2 
+    #a2 = [11/(12*h**2), -56/(12*h**2), 114/(12*h**2), -104/(12*h**2), 35/(12*h**2), ]
+    #a2 = np.array([-10,61,-156,214,-154,45])/(12*h**2)
+    #a2 = np.array([137,-972,2970,-5080,5265,-3132,812])/(180*h**2)
+    a2 = np.array([-1,4,6,-20,11])/(12*h**2)
+    d2u_2 = 0
+    for i,a in zip(range(-3, 2),a2):
+        d2u_2 += u(x+i*h)*a
+    
+    return d2u_2
+
 print("Exact value:",exact_value)
 print("Backward:", d2u_b(0.001))
 print("Centered:", d2u_c(0.001))
+print("Centered in h/2:", d2u_c(0.001))
 
 #%% Checking order
 
@@ -69,13 +82,14 @@ h_list = [1/(2**s) for s in range(2,20)]
 # Initializing error lists
 error_backword = [abs(exact_value - d2u_b(h_list[i])) for i in range(len(h_list))]
 error_centered = [abs(exact_value - d2u_c(h_list[i])) for i in range(len(h_list))]
+error_centered_int = [abs(exact_value - d2u_c_int(h_list[i])) for i in range(len(h_list))]
 
 # Convergence rates 
 CR_backword = 3
 CR_centered = 4
 
 # Making subplot
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 10))
+fig, (ax1, ax2,ax3) = plt.subplots(1, 3, figsize=(8, 10))
 #ax1.loglog(h_list, error1, "-o")
 ax1.plot(np.log10(h_list),np.log10(error_backword),"-o")
 ax1.plot(np.log10(h_list),CR_backword*np.log10(h_list))
@@ -83,6 +97,7 @@ ax1.plot(np.log10(h_list),CR_centered*np.log10(h_list))
 ax1.set_title('Backward operator')  
 ax1.set_xlabel(r'$\log(h)$')
 ax1.set_ylabel(r'$\log(\Vert \hat{u} - u \Vert )$') 
+
 #ax2.loglog(h_list, error2, "-o")
 ax2.plot(np.log10(h_list),np.log10(error_centered),"-o")
 ax2.plot(np.log10(h_list),CR_centered*np.log10(h_list))
@@ -90,9 +105,15 @@ ax2.set_title('Centered operator')
 ax2.set_xlabel(r'$\log(h)$')
 ax2.set_ylabel(r'$\log(\Vert \hat{u} - u \Vert) $')  
 
+ax3.plot(np.log10(h_list),np.log10(error_centered_int), "-o")
+ax3.plot(np.log10(h_list),2*np.log10(h_list))
+ax3.set_title('Centered int operator')
+ax3.set_xlabel(r'$\log(h)$')
+ax3.set_ylabel(r'$\log(\Vert \hat{u} - u \Vert) $')  
+
 plt.tight_layout()
 
-#plt.show()
+plt.show()
 
 # %% Problem 2a
 
