@@ -170,7 +170,7 @@ for i in range(N):
 
     u_exact = exactfunc(X,Y)
     e_i = abs(u_solution-u_exact)
-    E_inf[i] = norm(e_i,np.inf)
+    E_inf[i] = np.max(e_i)
     
 a,b = np.polyfit(np.log(H), np.log(E_inf), 1)
 print(a)
