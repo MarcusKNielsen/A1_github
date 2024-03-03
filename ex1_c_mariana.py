@@ -8,9 +8,7 @@ import numpy as np
 #%% Exercise c
 def u(x):
     return math.exp(math.cos(x))
-    #return math.exp(x)
 
-#exact_value = math.exp(0)
 exact_value = -math.exp(1)
 
 def d2u_b(h):
@@ -36,13 +34,13 @@ def d2u_c(h):
     return d2u_2
 
 def d2u_c_int(h):
-    x=-h/2 
-    #a2 = [11/(12*h**2), -56/(12*h**2), 114/(12*h**2), -104/(12*h**2), 35/(12*h**2), ]
+    x=h/2 
+    a2 = [11/(12*h**2), -56/(12*h**2), 114/(12*h**2), -104/(12*h**2), 35/(12*h**2)]
     #a2 = np.array([-10,61,-156,214,-154,45])/(12*h**2)
     #a2 = np.array([137,-972,2970,-5080,5265,-3132,812])/(180*h**2)
-    a2 = np.array([-1,4,6,-20,11])/(12*h**2)
+    #a2 = np.array([-1,4,6,-20,11])/(12*h**2)
     d2u_2 = 0
-    for i,a in zip(range(-3, 2),a2):
+    for i,a in zip(range(-2, 3),a2):
         d2u_2 += u(x+i*h)*a
     
     return d2u_2
