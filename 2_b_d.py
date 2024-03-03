@@ -25,7 +25,7 @@ def poisson9(m):
 m = 5
 # Check that the sparse A matrix looks correct using imshow
 A_sparse = poisson9(m).todense()
-fig = plt.figure()
+fig = plt.figure() 
 plt.title("Sparse Laplacian Matrix Structure")
 img = plt.imshow(A_sparse)
 fig.colorbar(img)
@@ -83,7 +83,7 @@ def vec_b(m,correction):
                 b[k-1] = -4*exactfunc(x[i+1],y[j])/(h**2) -exactfunc(x[i+1],y[j-1])/(h**2) -exactfunc(x[i+1],y[j+1])/(h**2)
             
             if correction:
-                b[k-1] += f(x[i],y[j]) + h**2/12*f_nab2(x[i],y[j]) # tilføjelse af f i b vektoren
+                b[k-1] += f(x[i],y[j]) - h**2/12*f_nab2(x[i],y[j]) # tilføjelse af f i b vektoren
             else:
                 b[k-1] += f(x[i],y[j]) # tilføjelse af f i b vektoren
  

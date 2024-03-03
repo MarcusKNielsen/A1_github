@@ -40,14 +40,14 @@ def poissonA(m):
     return A
 
 # Check that the sparse A matrix looks correct using imshow
-A_sparse = poissonA(4).todense()
+A_sparse = poissonA(5).todense()
 fig = plt.figure()
 plt.title("Sparse Laplacian Matrix Structure")
 img = plt.imshow(A_sparse)
 fig.colorbar(img)
 plt.xlabel("k: node index")
 plt.ylabel("k: node index")
-plt.show()
+
 
 def is_less_than(t1, t2, place):
 
@@ -141,7 +141,17 @@ fig.colorbar(ax2, ax=ax[2], fraction=cbar_fraction)
 
 fig.subplots_adjust(wspace=0.3)
 
-plt.show()
+from mpl_toolkits.mplot3d import Axes3D
+fig = plt.figure(figsize=(8, 6))
+ax = fig.add_subplot(111, projection='3d')
+
+# Plot numerical solution
+ax.plot_surface(X, Y, u_solution, cmap='viridis')
+ax.set_title("Numerical Solution")
+ax.set_xlabel("x")
+ax.set_ylabel("y")
+ax.set_zlabel("U")
+
 
 #%% Error analysis
 
@@ -175,10 +185,11 @@ for i in range(N):
 a,b = np.polyfit(np.log(H), np.log(E_inf), 1)
 print(a)
 plt.figure()
-plt.plot(np.log(H),np.log(E_inf),"o-",color="green")
-plt.plot(np.log(H),b+a*np.log(H),color="red")
+plt.plot(np.log(H),np.log(E_inf),"o-",color="green",label="Inifinity norm of global error")
+plt.plot(np.log(H),b+a*np.log(H),color="red",label="Helper line of order 2")
 plt.xlabel(r"$\log(h)$")
 plt.ylabel(r"$\log(E)$")
+plt.legend()
 plt.show()
 
 
