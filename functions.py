@@ -114,3 +114,37 @@ def poisson_b9(m,correction):
  
     return b 
 
+
+def Amult(U,m):
+
+    result = np.zeros(m*m)
+    h = 1/(m+1)
+
+    for i in range(1,m+1):
+        for j in range(1,m+1):
+
+            point = (i,j)
+            k = i+m*(j-1) 
+            k_c = k-1 # Current k in vector U
+       
+            # The corners
+            if (1,1) == point: # left bottom corner
+                result[k-1] =  -4*U[k_c] + U[k_c+1] + U[k_c+m] 
+            elif point == (m,1): # right bottem corner
+                result[k-1] = -4*U[k_c] + U[k_c-1] + U[k_c+m]
+            elif (1,m) == point: # left upper corner
+                result[k-1] = -4*U[k_c] + U[k_c+1] + U[k_c-m]
+            elif point == (m,m): # right upper corner
+                result[k-1] = -4*U[k_c] + U[k_c-1] + U[k_c-m]
+            elif is_less_than((1,1),point,"edge_b_u") & is_less_than(point,(m,1),"edge_b_u"): # bottem row
+                result[k-1] = -4*U[k_c] + U[k_c-1] + U[k_c+1] + U[k_c+m] 
+            elif is_less_than((1,m),point,"edge_b_u") & is_less_than(point,(m,m),"edge_b_u"): # upper row
+                result[k-1] = -4*U[k_c] + U[k_c-1] + U[k_c+1] + U[k_c-m] 
+            elif is_less_than((1,1),point,"edge_l_r") & is_less_than(point,(1,m),"edge_l_r"):  # left side 
+                result[k-1] = -4*U[k_c] + U[k_c+m] + U[k_c+1] + U[k_c-m] 
+            elif is_less_than((m,1),point,"edge_l_r") & is_less_than(point,(m,m),"edge_l_r"): # right side 
+                result[k-1] = -4*U[k_c] + U[k_c+m] + U[k_c-1] + U[k_c-m] 
+            else:
+                result[k-1] = -4*U[k_c] + U[k_c+m] + U[k_c-1] + U[k_c-m] + U[k_c+1] # Rest follows the equation
+
+    return result/(h**2)
