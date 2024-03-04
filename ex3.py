@@ -29,7 +29,7 @@ def report_pcg(xk):
 #%% Solving with matlab 
 A_sp = poisson_A5(m)
 e = np.ones((m*m, 1))
-M = spdiags([e.flatten(),-4*e.flatten(),e.flatten()], [-1,0,1], m*m,m*m)
+M = A_sp#spdiags([e.flatten(),-4*e.flatten(),e.flatten()], [-1,0,1], m*m,m*m)
 F = poisson_b5(m)
 u_cg,info_cg = cg(-A_sp,-F,M=None,callback=report_cg)
 u_pcg,info_pcg = cg(-A_sp,-F,M=M,callback=report_pcg)
