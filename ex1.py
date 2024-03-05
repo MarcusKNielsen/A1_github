@@ -1,72 +1,64 @@
 
 #%% Importing libraries
-import math
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
- 
 #%% Exercise c
 def u(x):
-    return math.exp(math.cos(x))
+    return np.exp(np.cos(x))
 
-exact_value = -math.exp(1)
+# The second derivative evaluated in 0:
+exact_value = -np.exp(1)
 
-def d2u_b(h):
-    # (4,0)
-    x=0
-    #a1 = [11/(12*h**2), -14/(3*h**2), 19/(2*h**2), -26/(3*h**2), 35/(12*h**2)]
-    a1 = [11/(12*h**2), -56/(12*h**2), 114/(12*h**2), -104/(12*h**2), 35/(12*h**2)]
-    d2u_1 = 0
-    for i,a in zip(range(-4, 1),a1):
-        d2u_1 += u(x+i*h)*a
+def du(h,x,alpha,beta,a):
+    # alpha: start stencil
+    # beta: end stencil 
+    # h: the stencil size
+    # a: coefficients depending on FDM
     
-    return d2u_1
-
-def d2u_c(h):
-    # (2,2)
-    x=0
-    #a2 = [-1/(12*h**2), 4/(3*h**2), -5/(2*h**2), 4/(3*h**2), -1/(12*h**2)]
-    a2 = np.array([-1/12,16/12,-30/12,16/12,-1/12])/(h**2)
-    d2u_2 = 0
-    for i,a in zip(range(-2, 3),a2): 
-        d2u_2 += u(x+i*h)*a
+    # The approximation to an arbitrary derivative
+    result = 0
+    for i,a in zip(range(-alpha, beta+1), a):
+        result += u(x+i*h)*a
     
-    return d2u_2
+    return result
 
-print("Exact value:",exact_value)
-print("Backward:", d2u_b(0.001))
-print("Centered:", d2u_c(0.001))
+#%% Order of accuracy 
 
-#%% Checking order
-
-h = 0.1
-a_forward = np.array([35/12, -104/12, 114/12,-56/12, 11/12])/(h**2)
+# The mesh size
+h = 0.1 
+# The coefficient from FDM of second order derivative backword and centered using 5 points
 a_backward = np.array([11/12,-56/12,114/12,-104/12,35/12])/(h**2)
 a_centered = np.array([-1/12,16/12,-30/12,16/12,-1/12])/(h**2)
+print("Approximating second derivative using different stencils:")
+print("Exact value:",exact_value)
+print("Backward:", du(h=h,x=0,alpha=4,beta=0,a = a_backward))
+print("Centered:", du(h=h,x=0,alpha=2,beta=2,a = a_centered))
 
 def C(n,a,alpha,beta,dev):
-    out = 0
-    
+    # Checking order of accuracy based on the coefficients
+    # Following equation 3 from problem description
+    result = 0
     if n == dev:
-        out -= h**(-n)
+        result -= h**(-n)
     
     for a,m in zip(a,range(-alpha,beta+1)):
-        out += a*m**n/(math.factorial(n))
+        result += a*m**n/(math.factorial(n))
 
-    return out 
+    return result 
 
-print("Forword:",[C(i,a_forward,0,4,dev=2) for i in range(7)])
-print("Backword:",[C(i,a_backward,4,0,dev=2) for i in range(7)])
-print("Centered:",[C(i,a_centered,2,2,dev=2) for i in range(7)])
+print("Backward:",[C(i,a_backward,alpha=4,beta=0,dev=2) for i in range(7)])
+print("Centered:",[C(i,a_centered,alpha=2,beta=2,dev=2) for i in range(7)])
 
 #%% Exercise d
 
 # Computing the values of h for different values of s
-h_list = [1/(2**s) for s in range(2,20)]
+h_list = np.array([1/(2**s) for s in range(2,20)])
 
 # Initializing error lists
-error_backword = [abs(exact_value - d2u_b(h_list[i])) for i in range(len(h_list))]
-error_centered = [abs(exact_value - d2u_c(h_list[i])) for i in range(len(h_list))]
+error_backword = abs(exact_value - du(h=h_list,x=0,alpha=4,beta=0,a = a_backward))
+error_centered = abs(exact_value - du(h=h_list,x=0,alpha=2,beta=2,a = a_centered))
 
 # Convergence rates 
 CR_backword = 3
@@ -74,21 +66,20 @@ CR_centered = 4
 
 # Making subplot
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 10))
-#ax1.loglog(h_list, error1, "-o")
-ax1.plot(np.log10(h_list),np.log10(error_backword),"-o")
-ax1.plot(np.log10(h_list),CR_backword*np.log10(h_list))
-ax1.plot(np.log10(h_list),CR_centered*np.log10(h_list))
+ax1.plot(np.log10(h_list),np.log10(error_backword),"-o",label="backward FDM")
+#ax1.plot(np.log10(h_list),CR_backword*np.log10(h_list))
+ax1.plot(np.log10(h_list),CR_centered*np.log10(h_list),label="Helper line of order 4")
 ax1.set_title('Backward operator')  
 ax1.set_xlabel(r'$\log(h)$')
 ax1.set_ylabel(r'$\log(\Vert \hat{u} - u \Vert )$') 
+ax1.legend()
 
-#ax2.loglog(h_list, error2, "-o")
-ax2.plot(np.log10(h_list),np.log10(error_centered),"-o")
-ax2.plot(np.log10(h_list),CR_centered*np.log10(h_list))
+ax2.plot(np.log10(h_list),np.log10(error_centered),"-o",label="Centered FDM")
+ax2.plot(np.log10(h_list),CR_centered*np.log10(h_list),label="Helper line of order 4")
 ax2.set_title('Centered operator')
 ax2.set_xlabel(r'$\log(h)$')
 ax2.set_ylabel(r'$\log(\Vert \hat{u} - u \Vert) $')  
-
+ax2.legend()
 plt.tight_layout()
 
 plt.show()
