@@ -1,5 +1,6 @@
 import numpy as np 
 from scipy.sparse import spdiags, kron, eye
+from scipy.sparse.linalg import inv
 
 def exactfunc(x,y):
     return np.sin(4*np.pi*(x+y))+np.cos(4*np.pi*x*y)
@@ -114,7 +115,6 @@ def poisson_b9(m,correction):
  
     return b 
 
-
 def Amult(U,m):
 
     result = np.zeros(m*m)
@@ -147,4 +147,45 @@ def Amult(U,m):
             else:
                 result[k-1] = -4*U[k_c] + U[k_c+m] + U[k_c-1] + U[k_c-m] + U[k_c+1] # Rest follows the equation
 
-    return result/(h**2)
+    # -A**h * U
+    return -result/(h**2)
+
+
+def eigenvalues_5point_relax(h,p,q,omega):
+
+    # Eigenvalue for G (Iteration matrix) eq. (3.15)
+    lambda_pq = 2/(h**2)*( (np.cos(p*np.pi*h)-1) + (np.cos(q*np.pi*h)-1) ) 
+
+    # The derived eigenvalue for the G_omega 
+    gamma_pq = (1-omega)+omega*(1+h**2/4*lambda_pq) # eq. (4.90)
+    
+    return gamma_pq
+
+def smooth(U,omega,m,F):
+
+    # Step size
+    h = 1/(m+1)
+
+    # Dervied from eq. (4.88)
+    Unew = U+omega*h**2/4*F
+
+    return Unew
+
+def coarsen(R,m):
+ 
+    e = np.ones(m)*1/8
+    S = spdiags([e,e,1/1,e,e], [-m,-1, 0, 1,m], m, m, format="csc")
+    I = eye(m, format="csc")
+    R_mat = kron(I, S) + kron(S, I)
+
+    # residual of coarse 
+    result = inv(R_mat)@R
+
+    return result
+
+def interpolate(Rc,m):
+    
+
+
+
+
