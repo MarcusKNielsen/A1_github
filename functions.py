@@ -1,6 +1,6 @@
 import numpy as np 
-from scipy.sparse import spdiags, kron, eye
-from scipy.sparse.linalg import inv
+from scipy.sparse import spdiags, kron, eye,csc_matrix
+from scipy.sparse.linalg import inv, spsolve
 
 def exactfunc(x,y):
     return np.sin(4*np.pi*(x+y))+np.cos(4*np.pi*x*y)
@@ -181,21 +181,24 @@ def matrix_figure(A):
     plt.ylabel("k: node index")
     plt.show()
 
-def coarsen(R,m):
-
-    # R: fine residual
-    # m: number of stencils
- 
+def generate_R(m):
     e = np.ones(m*m)
     S = spdiags([e,e,e*2,e,e], [-m,-1, 0, 1,m], m, m, format="csc")
     I = eye(m, format="csc")
     R_mat = kron(I, S) + kron(S, I)
     R_mat = R_mat/8
+    R_mat = R_mat.toarray()
+    R_mat = R_mat[:int((m*m-1)/2),:]
+    R_mat = csc_matrix(R_mat)
+
+    return R_mat 
+
+def coarsen(R,res):
 
     # residual of coarse 
-    r_coarse = R_mat@R
+    r_coarse = R@res
 
-    return r_coarse,R_mat
+    return r_coarse
 
 def generate_P(m):
     x_range = np.arange(1, m+1)
@@ -219,7 +222,6 @@ def generate_P(m):
 
         # Changing to 1-indexing
         idx += 1
-        print(idx)
 
         if idx%2 == 0: # Even numbers
             if (1,1) == point: # left bottom corner
@@ -350,20 +352,46 @@ def generate_P(m):
     # Deleting first column due to 1-indexing
     P = P[:,1:]
 
-    return P
+    return csc_matrix(P)
 
-def interpolate(Rc,m):    
+def interpolate(P,ec):    
 
-    P = generate_P(m)
-
-    e = P@Rc
+    e = P@ec
                 
     return e
 
+def VCM(A,R,P,u,f,l,m):
+
+    omega = 2/3
+
+    if l == 1:
+        u = spsolve(A,f)
+    else:
+        u = smooth(u,omega,m,f)
+        r_f = f+Amult(u,m)
+        r_c = coarsen(R,r_f)
+        e_c = np.zeros(int((m*m-1)/2))
+        e_c = VCM(R@A@P,R,P,e_c,r_c,l-1,m)
+        e_f = interpolate(P,e_c)
+        u = u + e_f
+        u = smooth(u,omega,m,f)
+    return u
 
 
-k=2    
+k=2
 m = 2**k - 1
-R = generate_P(0,m) 
+R = generate_P(m) 
 print(R.shape)   
-matrix_figure(R)
+#matrix_figure(R)
+
+l = 2
+A = poisson_A5(m)
+f = poisson_b5(m)
+#R = generate_R(m) #Mangler
+P = generate_P(m) 
+u = np.zeros(m*m)
+
+u_test = VCM(A,R,P,u,f,l,m)
+
+
+
