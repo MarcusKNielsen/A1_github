@@ -171,21 +171,73 @@ def smooth(U,omega,m,F):
 
     return Unew
 
+def matrix_figure(A):
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    plt.title("Matrix structure")
+    img = plt.imshow(A)
+    fig.colorbar(img)
+    plt.xlabel("k: node index")
+    plt.ylabel("k: node index")
+    plt.show()
+
 def coarsen(R,m):
+
+    # R: fine residual
+    # m: number of stencils
  
-    e = np.ones(m)*1/8
-    S = spdiags([e,e,1/1,e,e], [-m,-1, 0, 1,m], m, m, format="csc")
+    e = np.ones(m*m)
+    S = spdiags([e,e,e*2,e,e], [-m,-1, 0, 1,m], m, m, format="csc")
     I = eye(m, format="csc")
     R_mat = kron(I, S) + kron(S, I)
+    R_mat = R_mat/8
 
     # residual of coarse 
-    result = inv(R_mat)@R
+    r_coarse = R_mat@R
 
-    return result
+    return r_coarse,R_mat
 
 def interpolate(Rc,m):
+
+    def pattern_fine(i,m_coarse):
+        row = np.zeros(m_coarse)
+
+        if i > m_coarse:
+            row[i-m_fine] = 1 
+        if i > 1:
+            row[i-1] = 1
+        if i < m_fine-1:
+            row[i+1] = 1
+        if i < m_fine:
+            row[i+m_fine] = 1
+        
+        return row
     
+    def pattern_coarse(i,m_coarse):
+        e = np.ones(m_coarse)
+        row = spdiags([e,e,e*0,e,e], [i-m_coarse-1-1,i-m_coarse+1, i,i+ m_coarse-1,i+m_coarse+1], m, format="csc")
+        return row
+    
+    m_fine = int(m*m)
+    m_c = int((m-1)/2)
+    R = np.zeros([m,m])
 
+    for row in range(m):
 
+        if row%2 == 0:
+            add_row = pattern_fine(row,m_fine)
+        else: 
+            add_row = pattern_coarse(row,m_c)
+
+        R[row] = add_row
+
+    return R
+
+m = 7
+
+R = interpolate(0,m)
+
+print(R)
+matrix_figure(R.toarray())
 
 

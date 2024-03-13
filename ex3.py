@@ -5,6 +5,8 @@ from scipy.sparse.linalg import cg, inv
 from functions import*
 import inspect
 
+#%% Problem 3.a
+
 m=5
 U = np.ones(m*m)
 AU = Amult(U,m)
@@ -52,15 +54,15 @@ plt.title("Convergence plot of pcg method")
 #%% Jacobi and under relaxed Jacobi
 
 omega = np.linspace(0,2,10)
-m = np.arange(2,11)
+m = np.arange(3,11)
 max_eig = np.zeros(len(omega))
 
 fig = plt.figure()
 
 for mi in m:
     h = 1/(1+mi)
-    p = np.arange(1,mi+1)
-    q = np.arange(1,mi+1)
+    p = np.arange(mi/2,mi+1)
+    q = np.arange(mi/2,mi+1)
 
     for idx,o in enumerate(omega):
         eig = np.array([[eigenvalues_5point_relax(h,pi,qj,o) for pi in p] for qj in q])
@@ -72,9 +74,11 @@ for mi in m:
     plt.ylabel(r"$\max_{m/2\leq p,q \leq m}|\gamma_{p,q}|$")
     plt.legend()
 
-plt.hlines(1,xmin=np.min(omega),xmax=np.max(omega),label="threshold of 1",color="black")
+plt.hlines(1,xmin=np.min(omega),xmax=np.max(omega),label="threshold of 1",color="black",linestyle="dashed")
+plt.vlines(2/3,ymin=0,ymax=3,color="red",linestyle="dashed")
 plt.legend()
-#plt.show()
+
+plt.show()
 
 #%% Smooth function test
 omega_opt= 2/3
@@ -87,6 +91,7 @@ Uk = smooth(U,omega_opt,m,F)
 print("Test of smooth solver: Uk=",Uk)
 
 #%% Multipgrid solver
+
 
 
 

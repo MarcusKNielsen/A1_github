@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 def u(x):
     return np.exp(np.cos(x))
 
-def u_approx(h):
+def u_approx(h): 
     return (-1/8) * u(-3*h/2) + (6/8) * u(-h/2) + (3/8) * u(h/2)
 
 h_list = np.logspace(-4,-1,15)

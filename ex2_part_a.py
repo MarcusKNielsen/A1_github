@@ -8,7 +8,7 @@ page 38 in the book (Finite Difference Methods-Leveque)
 
 import numpy as np
 from numpy.linalg import solve, norm
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt 
 
 
 # Define uniform grid/mesh
