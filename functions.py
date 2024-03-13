@@ -197,47 +197,173 @@ def coarsen(R,m):
 
     return r_coarse,R_mat
 
-def interpolate(Rc,m):
+def generate_P(m):
+    x_range = np.arange(1, m+1)
+    y_range = np.arange(1, m+1)
 
-    def pattern_fine(i,m_coarse):
-        row = np.zeros(m_coarse)
+    # Create a meshgrid of coordinates
+    X, Y = np.meshgrid(x_range, y_range)
 
-        if i > m_coarse:
-            row[i-m_fine] = 1 
-        if i > 1:
-            row[i-1] = 1
-        if i < m_fine-1:
-            row[i+1] = 1
-        if i < m_fine:
-            row[i+m_fine] = 1
-        
-        return row
-    
-    def pattern_coarse(i,m_coarse):
-        e = np.ones(m_coarse)
-        row = spdiags([e,e,e*0,e,e], [i-m_coarse-1-1,i-m_coarse+1, i,i+ m_coarse-1,i+m_coarse+1], m, format="csc")
-        return row
-    
-    m_fine = int(m*m)
-    m_c = int((m-1)/2)
-    R = np.zeros([m,m])
+    # Flatten the meshgrid and create an array of tuples
+    array_points = np.column_stack((X.ravel(), Y.ravel()))
+    points = [tuple(row) for row in array_points]
 
-    for row in range(m):
+    m_f = int(m*m)
+    m_c = int((m_f-1)/2)
 
-        if row%2 == 0:
-            add_row = pattern_fine(row,m_fine)
-        else: 
-            add_row = pattern_coarse(row,m_c)
+    P = np.zeros([m_f,m_c+1])
 
-        R[row] = add_row
+    for idx,row in enumerate(P):
 
-    return R
+        point = points[idx]
 
-m = 7
+        # Changing to 1-indexing
+        idx += 1
+        print(idx)
 
-R = interpolate(0,m)
+        if idx%2 == 0: # Even numbers
+            if (1,1) == point: # left bottom corner
+                # Right up
+                row[int((idx+m+1)/2)] = 1
+                # Left up
+                row[int((idx+m-1)/2)] = 1
 
-print(R)
-matrix_figure(R.toarray())
+            elif point == (m,1): # right bottem corner
+                # Right up
+                row[int((idx+m+1)/2)] = 1
+                # Left up
+                row[int((idx+m-1)/2)] = 1
+
+            elif (1,m) == point: # left upper corner
+                # Right down
+                row[int((idx-m+1)/2)] = 1
+                # Left down 
+                row[int((idx-m-1)/2)] = 1
+
+            elif point == (m,m): # right upper corner
+                # Right down
+                row[int((idx-m+1)/2)] = 1
+                # Left down 
+                row[int((idx-m-1)/2)] = 1
+                    
+            elif is_less_than((1,1),point,"edge_b_u") & is_less_than(point,(m,1),"edge_b_u"): # bottem row
+                # Right up
+                row[int((idx+m+1)/2)] = 1
+                # Left up
+                row[int((idx+m-1)/2)] = 1
+
+            elif is_less_than((1,m),point,"edge_b_u") & is_less_than(point,(m,m),"edge_b_u"): # upper row
+                # Right down
+                row[int((idx-m+1)/2)] = 1
+                # Left down 
+                row[int((idx-m-1)/2)] = 1
+
+            elif is_less_than((1,1),point,"edge_l_r") & is_less_than(point,(1,m),"edge_l_r"):  # left side 
+                # Right up
+                row[int((idx+m+1)/2)] = 1
+                # Right down
+                row[int((idx-m+1)/2)] = 1
+
+            elif is_less_than((m,1),point,"edge_l_r") & is_less_than(point,(m,m),"edge_l_r"): # right side 
+                # Left up
+                row[int((idx+m-1)/2)] = 1
+                # Left down 
+                row[int((idx-m-1)/2)] = 1
+
+            else: # Mid points, we use all of the points in the stencil
+                # Right up
+                row[int((idx+m+1)/2)] = 1
+                # Left up
+                row[int((idx+m-1)/2)] = 1
+                # Right down
+                row[int((idx-m+1)/2)] = 1
+                # Left down 
+                row[int((idx-m-1)/2)] = 1
+
+        else: # If odd number
+            if (1,1) == point: # left bottom corner
+                # Up 
+                row[int((idx+m)/2)] = 1
+                # Right 
+                row[int((idx+1)/2)] = 1
+
+            elif point == (m,1): # right bottem corner
+                # Up 
+                row[int((idx+m)/2)] = 1
+                #left 
+                row[int((idx-1)/2)] = 1
+
+            elif (1,m) == point: # left upper corner
+                # Down
+                row[int((idx-m)/2)] = 1
+                # Right 
+                row[int((idx+1)/2)] = 1
+
+            elif point == (m,m): # right upper corner
+                # Down
+                row[int((idx-m)/2)] = 1
+                #left 
+                row[int((idx-1)/2)] = 1
+                    
+            elif is_less_than((1,1),point,"edge_b_u") & is_less_than(point,(m,1),"edge_b_u"): # bottem row
+                # Up 
+                row[int((idx+m)/2)] = 1
+                # Right 
+                row[int((idx+1)/2)] = 1
+                #left 
+                row[int((idx-1)/2)] = 1
+
+            elif is_less_than((1,m),point,"edge_b_u") & is_less_than(point,(m,m),"edge_b_u"): # upper row
+                # Down
+                row[int((idx-m)/2)] = 1
+                # Right 
+                row[int((idx+1)/2)] = 1
+                #left 
+                row[int((idx-1)/2)] = 1
+
+            elif is_less_than((1,1),point,"edge_l_r") & is_less_than(point,(1,m),"edge_l_r"):  # left side 
+                # Up 
+                row[int((idx+m)/2)] = 1
+                # Down
+                row[int((idx-m)/2)] = 1
+                # Right 
+                row[int((idx+1)/2)] = 1
+
+            elif is_less_than((m,1),point,"edge_l_r") & is_less_than(point,(m,m),"edge_l_r"): # right side 
+                # Up 
+                row[int((idx+m)/2)] = 1
+                # Down
+                row[int((idx-m)/2)] = 1
+                #left 
+                row[int((idx-1)/2)] = 1
+
+            else: # Mid points, we use all of the points in the stencil
+                # Up 
+                row[int((idx+m)/2)] = 1
+                # Down
+                row[int((idx-m)/2)] = 1
+                # Right 
+                row[int((idx+1)/2)] = 1
+                #left 
+                row[int((idx-1)/2)] = 1
+
+    # Deleting first column due to 1-indexing
+    P = P[:,1:]
+
+    return P
+
+def interpolate(Rc,m):    
+
+    P = generate_P(m)
+
+    e = P@Rc
+                
+    return e
 
 
+
+k=2    
+m = 2**k - 1
+R = generate_P(0,m) 
+print(R.shape)   
+matrix_figure(R)
