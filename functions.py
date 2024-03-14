@@ -1,6 +1,7 @@
 import numpy as np 
 from scipy.sparse import spdiags, kron, eye,csc_matrix
 from scipy.sparse.linalg import inv, spsolve
+import matplotlib.pyplot as plt
 
 def exactfunc(x,y):
     return np.sin(4*np.pi*(x+y))+np.cos(4*np.pi*x*y)
@@ -160,6 +161,100 @@ def matrix_figure(A):
     plt.ylabel("k: node index")
     plt.show()
 
+def plot_multigrid(n, idx_from_zero=True):
+
+    # Define marker size
+    marker_size_dot = 5
+    marker_size_cross = 7
+
+    # Define x and y ranges
+    x = np.linspace(0, 1, n+2)  # Add 2 for boundary points
+    y = np.linspace(0, 1, n+2)
+
+    # Create meshgrid
+    X, Y = np.meshgrid(x, y)
+
+    # Plotting the grid
+    plt.figure(figsize=(6,6))
+
+    # Plotting interior points
+    for i in range(1, len(x) - 1):
+        for j in range(1, len(y) - 1):
+            if (i * (n+2) + j) % 2 == 0:  # Even interior points
+                plt.plot(X[i, j], Y[i, j], 'bo', markersize=marker_size_dot)  # Plot as dot
+            else:  # Odd interior points
+                plt.plot(X[i, j], Y[i, j], 'bx', markersize=marker_size_cross)  # Plot as cross
+
+    # Plotting boundary points
+    plt.plot(X[:, 0], Y[:, 0], 'ro', markersize=marker_size_dot)  # left boundary
+    plt.plot(X[:, -1], Y[:, -1], 'ro', markersize=marker_size_dot)  # right boundary
+    plt.plot(X[0, :], Y[0, :], 'ro', markersize=marker_size_dot)  # bottom boundary
+    plt.plot(X[-1, :], Y[-1, :], 'ro', markersize=marker_size_dot)  # top boundary
+
+    # Adding labels for interior points
+    if idx_from_zero:
+        label1 = 0
+        label2 = 0
+    else:
+        label1 = 1
+        label2 = 1
+        
+    for i in range(1, len(x) - 1):
+        for j in range(1, len(y) - 1):
+            plt.text(X[i, j] + 0.03, Y[i, j] - 0.02, str(label1), fontsize=10)
+            label1 += 1
+            if (i * (n+2) + j) % 2 != 0:  # If it's a cross point
+                plt.text(X[i, j] + 0.02, Y[i, j] - 0.05, f"({str(label2)})", fontsize=10)
+                label2 += 1
+            
+            
+
+    plt.title('Uniform Grid with Boundary Points and Labels')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.grid(True)
+    plt.gca().set_aspect('equal', adjustable='box')  # Equal aspect ratio
+    plt.show()
+
+def plot_u_vec(u):
+    m = int(np.sqrt(len(u)))
+    u = u.reshape(m, m)
+    x = np.linspace(0,1,m+2)
+    y = np.linspace(0,1,m+2)
+    
+    X,Y = np.meshgrid(x[1:-1],y[1:-1])
+    
+    u_exact = exactfunc(X,Y)
+    
+    err = u_exact-u
+    
+    fig, ax = plt.subplots(1, 3, figsize=(14, 4))
+    
+    cbar_fraction = 0.045
+    
+    ax0 = ax[0].pcolormesh(X, Y, u_exact)
+    ax[0].set_title("Exact Solution")
+    ax[0].set_aspect('equal', 'box')
+    ax[0].set_xlabel("x")
+    ax[0].set_ylabel("y")
+    fig.colorbar(ax0, ax=ax[0], fraction=cbar_fraction)
+    
+    ax1 = ax[1].pcolormesh(X, Y, u)
+    ax[1].set_title("Numerical Solution")
+    ax[1].set_aspect('equal', 'box')
+    ax[1].set_xlabel("x")
+    ax[1].set_ylabel("y")
+    fig.colorbar(ax1, ax=ax[1], fraction=cbar_fraction)
+    
+    ax2 = ax[2].pcolormesh(X, Y, err)
+    ax[2].set_title("Error")
+    ax[2].set_aspect('equal', 'box')
+    ax[2].set_xlabel("x")
+    ax[2].set_ylabel("y")
+    fig.colorbar(ax2, ax=ax[2], fraction=cbar_fraction)
+    
+    fig.subplots_adjust(wspace=0.3)
+
 def eigenvalues_5point_relax(h,p,q,omega):
 
     # Eigenvalue for G (Iteration matrix) eq. (3.15)
@@ -170,15 +265,6 @@ def eigenvalues_5point_relax(h,p,q,omega):
     
     return gamma_pq
 
-def smooth(U,omega,m,F):
-
-    # Step size
-    h = 1/(m+1)
-
-    # Dervied from eq. (4.88)
-    Unew = U+omega*h**2/4*F
-
-    return Unew
 
 def generate_P(m):
 
@@ -376,6 +462,16 @@ def coarsen(R,res):
 
     return r_coarse
 
+def smooth(U,omega,m,F):
+
+    # Step size
+    h = 1/(m+1)
+
+    # Dervied from eq. (4.88)
+    Unew = U+(omega*h**2/4)*Amult(U, m) + omega*F
+
+    return Unew
+
 def VCM(A,R,P,u,f,l,m):
 
     omega = 2/3
@@ -395,9 +491,9 @@ def VCM(A,R,P,u,f,l,m):
         
     return u
 
-import matplotlib.pyplot as plt 
+#%%
 
-k = 7
+k = 3
 m = 2**k - 1 # m*m is the grid
 l = 2
 A = poisson_A5(m)
@@ -408,45 +504,46 @@ R = generate_R(m)
 
 u = np.zeros(m*m)
 
-#u_solution = VCM(A,R,P,u,f,l,m)
+u_solution = VCM(A,R,P,u,f,l,m)
 
-""" u_solution = u_solution.reshape(m, m)
-x = np.linspace(0,1,m+2)
-y = np.linspace(0,1,m+2)
 
-X,Y = np.meshgrid(x[1:-1],y[1:-1])
 
-u_exact = exactfunc(X,Y)
+#%% Marcus test
 
-err = u_exact-u_solution
+m = 20
+A = poisson_A5(m)
+f = poisson_b5(m)
+u_direct = spsolve(A,f)
 
-fig, ax = plt.subplots(1, 3, figsize=(14, 4))
+plot_u_vec(u_direct)
 
-cbar_fraction = 0.045
 
-ax0 = ax[0].pcolormesh(X, Y, u_exact)
-ax[0].set_title("Exact Solution")
-ax[0].set_aspect('equal', 'box')
-ax[0].set_xlabel("x")
-ax[0].set_ylabel("y")
-fig.colorbar(ax0, ax=ax[0], fraction=cbar_fraction)
+omega = 2/3
+u_iter = np.zeros(m*m)
+for _ in range(100):
+    u_iter = smooth(u_iter,omega,m,f)
+plot_u_vec(u_iter)
 
-ax1 = ax[1].pcolormesh(X, Y, u_solution)
-ax[1].set_title("Numerical Solution")
-ax[1].set_aspect('equal', 'box')
-ax[1].set_xlabel("x")
-ax[1].set_ylabel("y")
-fig.colorbar(ax1, ax=ax[1], fraction=cbar_fraction)
+#plot_multigrid(7, idx_from_zero=False)
 
-ax2 = ax[2].pcolormesh(X, Y, err)
-ax[2].set_title("Error")
-ax[2].set_aspect('equal', 'box')
-ax[2].set_xlabel("x")
-ax[2].set_ylabel("y")
-fig.colorbar(ax2, ax=ax[2], fraction=cbar_fraction)
+I = np.eye(m*m)
+h = 1/(m+1)
+A = A.toarray()
+G = I + omega*h**2*A/4
+condition_number = np.linalg.cond(G)
+print("cond of G", condition_number)
 
-fig.subplots_adjust(wspace=0.3) """
+# Allans code
+M = np.diag(np.diag(A))
+N=M-A
+invM = np.linalg.inv(M)
+Gnew = invM @ N
+b = invM @ f
 
+condition_number = np.linalg.cond(Gnew)
+print("cond of Gnew", condition_number)
+
+#%% Convergence test
 from numpy.linalg import norm
 
 N = 8
