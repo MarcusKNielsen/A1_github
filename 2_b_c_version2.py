@@ -102,7 +102,7 @@ from scipy.sparse.linalg import spsolve # scipy's sparse solver
 
 x = np.linspace(0,1,m+2)
 y = np.linspace(0,1,m+2)
-
+ 
 u_solution = spsolve(A, b)
 u_solution = u_solution.reshape(m, m)
 
@@ -150,7 +150,7 @@ ax.plot_surface(X, Y, u_solution, cmap='viridis')
 ax.set_title("Numerical Solution")
 ax.set_xlabel("x")
 ax.set_ylabel("y")
-ax.set_zlabel("U")
+ax.set_zlabel("U") 
 
 
 #%% Error analysis

@@ -5,7 +5,7 @@ from scipy.sparse.linalg import inv, spsolve
 def exactfunc(x,y):
     return np.sin(4*np.pi*(x+y))+np.cos(4*np.pi*x*y)
 
-def f(x,y): 
+def f_func(x,y): 
     term1 = 2*np.sin(4*np.pi*(x+y))
     term2 = (x**2+y**2)*np.cos(4*np.pi*x*y)
     return -(4*np.pi)**2*(term1+term2)
@@ -70,7 +70,7 @@ def poisson_b5(m):
             elif is_less_than((m,1),point,"edge_l_r") & is_less_than(point,(m,m),"edge_l_r"):
                 b[k-1] = -exactfunc(x[i+1],y[j])/(h**2) # right side 
 
-            b[k-1] += f(x[i],y[j]) # tilføjelse af f i b vektoren
+            b[k-1] += f_func(x[i],y[j]) # tilføjelse af f i b vektoren
 
     return b
 
@@ -150,6 +150,15 @@ def Amult(U,m):
     # -A**h * U
     return -result/(h**2)
 
+def matrix_figure(A):
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    plt.title("Matrix structure")
+    img = plt.imshow(A)
+    fig.colorbar(img)
+    plt.xlabel("k: node index")
+    plt.ylabel("k: node index")
+    plt.show()
 
 def eigenvalues_5point_relax(h,p,q,omega):
 
@@ -171,36 +180,8 @@ def smooth(U,omega,m,F):
 
     return Unew
 
-def matrix_figure(A):
-    import matplotlib.pyplot as plt
-    fig = plt.figure()
-    plt.title("Matrix structure")
-    img = plt.imshow(A)
-    fig.colorbar(img)
-    plt.xlabel("k: node index")
-    plt.ylabel("k: node index")
-    plt.show()
-
-def generate_R(m):
-    e = np.ones(m*m)
-    S = spdiags([e,e,e*2,e,e], [-m,-1, 0, 1,m], m, m, format="csc")
-    I = eye(m, format="csc")
-    R_mat = kron(I, S) + kron(S, I)
-    R_mat = R_mat/8
-    R_mat = R_mat.toarray()
-    R_mat = R_mat[:int((m*m-1)/2),:]
-    R_mat = csc_matrix(R_mat)
-
-    return R_mat 
-
-def coarsen(R,res):
-
-    # residual of coarse 
-    r_coarse = R@res
-
-    return r_coarse
-
 def generate_P(m):
+
     x_range = np.arange(1, m+1)
     y_range = np.arange(1, m+1)
 
@@ -217,142 +198,170 @@ def generate_P(m):
     P = np.zeros([m_f,m_c+1])
 
     for idx,row in enumerate(P):
-
+        
+        # The current point
         point = points[idx]
 
         # Changing to 1-indexing
         idx += 1
 
-        if idx%2 == 0: # Even numbers
-            if (1,1) == point: # left bottom corner
-                # Right up
-                row[int((idx+m+1)/2)] = 1
-                # Left up
-                row[int((idx+m-1)/2)] = 1
+        if idx%2 == 0: # Even number (coarse grid values)
 
-            elif point == (m,1): # right bottem corner
-                # Right up
-                row[int((idx+m+1)/2)] = 1
-                # Left up
-                row[int((idx+m-1)/2)] = 1
+            row[int(idx/2)] = 1  # Passes on the value we know already
 
-            elif (1,m) == point: # left upper corner
-                # Right down
-                row[int((idx-m+1)/2)] = 1
-                # Left down 
-                row[int((idx-m-1)/2)] = 1
-
-            elif point == (m,m): # right upper corner
-                # Right down
-                row[int((idx-m+1)/2)] = 1
-                # Left down 
-                row[int((idx-m-1)/2)] = 1
-                    
-            elif is_less_than((1,1),point,"edge_b_u") & is_less_than(point,(m,1),"edge_b_u"): # bottem row
-                # Right up
-                row[int((idx+m+1)/2)] = 1
-                # Left up
-                row[int((idx+m-1)/2)] = 1
-
-            elif is_less_than((1,m),point,"edge_b_u") & is_less_than(point,(m,m),"edge_b_u"): # upper row
-                # Right down
-                row[int((idx-m+1)/2)] = 1
-                # Left down 
-                row[int((idx-m-1)/2)] = 1
-
-            elif is_less_than((1,1),point,"edge_l_r") & is_less_than(point,(1,m),"edge_l_r"):  # left side 
-                # Right up
-                row[int((idx+m+1)/2)] = 1
-                # Right down
-                row[int((idx-m+1)/2)] = 1
-
-            elif is_less_than((m,1),point,"edge_l_r") & is_less_than(point,(m,m),"edge_l_r"): # right side 
-                # Left up
-                row[int((idx+m-1)/2)] = 1
-                # Left down 
-                row[int((idx-m-1)/2)] = 1
-
-            else: # Mid points, we use all of the points in the stencil
-                # Right up
-                row[int((idx+m+1)/2)] = 1
-                # Left up
-                row[int((idx+m-1)/2)] = 1
-                # Right down
-                row[int((idx-m+1)/2)] = 1
-                # Left down 
-                row[int((idx-m-1)/2)] = 1
-
-        else: # If odd number
+        else: # Odd number (fine grid values)      
             if (1,1) == point: # left bottom corner
                 # Up 
-                row[int((idx+m)/2)] = 1
+                row[int((idx+m)/2)] = 1/2
                 # Right 
-                row[int((idx+1)/2)] = 1
+                row[int((idx+1)/2)] = 1/2
 
             elif point == (m,1): # right bottem corner
                 # Up 
-                row[int((idx+m)/2)] = 1
+                row[int((idx+m)/2)] = 1/2
                 #left 
-                row[int((idx-1)/2)] = 1
+                row[int((idx-1)/2)] = 1/2
 
             elif (1,m) == point: # left upper corner
                 # Down
-                row[int((idx-m)/2)] = 1
+                row[int((idx-m)/2)] = 1/2
                 # Right 
-                row[int((idx+1)/2)] = 1
+                row[int((idx+1)/2)] = 1/2
 
             elif point == (m,m): # right upper corner
                 # Down
-                row[int((idx-m)/2)] = 1
+                row[int((idx-m)/2)] = 1/2
                 #left 
-                row[int((idx-1)/2)] = 1
+                row[int((idx-1)/2)] = 1/2
                     
             elif is_less_than((1,1),point,"edge_b_u") & is_less_than(point,(m,1),"edge_b_u"): # bottem row
                 # Up 
-                row[int((idx+m)/2)] = 1
+                row[int((idx+m)/2)] = 1/3
                 # Right 
-                row[int((idx+1)/2)] = 1
+                row[int((idx+1)/2)] = 1/3
                 #left 
-                row[int((idx-1)/2)] = 1
+                row[int((idx-1)/2)] = 1/3
 
             elif is_less_than((1,m),point,"edge_b_u") & is_less_than(point,(m,m),"edge_b_u"): # upper row
                 # Down
-                row[int((idx-m)/2)] = 1
+                row[int((idx-m)/2)] = 1/3
                 # Right 
-                row[int((idx+1)/2)] = 1
+                row[int((idx+1)/2)] = 1/3
                 #left 
-                row[int((idx-1)/2)] = 1
+                row[int((idx-1)/2)] = 1/3
 
             elif is_less_than((1,1),point,"edge_l_r") & is_less_than(point,(1,m),"edge_l_r"):  # left side 
                 # Up 
-                row[int((idx+m)/2)] = 1
+                row[int((idx+m)/2)] = 1/3
                 # Down
-                row[int((idx-m)/2)] = 1
+                row[int((idx-m)/2)] = 1/3
                 # Right 
-                row[int((idx+1)/2)] = 1
+                row[int((idx+1)/2)] = 1/3
 
             elif is_less_than((m,1),point,"edge_l_r") & is_less_than(point,(m,m),"edge_l_r"): # right side 
                 # Up 
-                row[int((idx+m)/2)] = 1
+                row[int((idx+m)/2)] = 1/3
                 # Down
-                row[int((idx-m)/2)] = 1
+                row[int((idx-m)/2)] = 1/3
                 #left 
-                row[int((idx-1)/2)] = 1
+                row[int((idx-1)/2)] = 1/3
 
             else: # Mid points, we use all of the points in the stencil
                 # Up 
-                row[int((idx+m)/2)] = 1
+                row[int((idx+m)/2)] = 1/4
                 # Down
-                row[int((idx-m)/2)] = 1
+                row[int((idx-m)/2)] = 1/4
                 # Right 
-                row[int((idx+1)/2)] = 1
+                row[int((idx+1)/2)] = 1/4
                 #left 
-                row[int((idx-1)/2)] = 1
+                row[int((idx-1)/2)] = 1/4
 
     # Deleting first column due to 1-indexing
     P = P[:,1:]
 
     return csc_matrix(P)
+
+def generate_R(m):
+
+    x_range = np.arange(1, m+1)
+    y_range = np.arange(1, m+1)
+
+    # Create a meshgrid of coordinates
+    X, Y = np.meshgrid(x_range, y_range)
+
+    # Flatten the meshgrid and create an array of tuples
+    array_points = np.column_stack((X.ravel(), Y.ravel()))
+    points = [tuple(row) for row in array_points]
+
+    m_f = int(m*m)
+    m_c = int((m_f-1)/2)
+
+    R = np.zeros([m_c,m_f+1])
+
+    for idx,row in enumerate(R):
+
+        # The current point
+        point = points[idx*2+1]
+
+        # Changing to 1-indexing
+        idx += 1
+                
+        if is_less_than((1,1),point,"edge_b_u") & is_less_than(point,(m,1),"edge_b_u"): # bottem row
+            # Up 
+            row[int(idx*2+m)] = 1/6
+            # Right 
+            row[int(idx*2+1)] = 1/6
+            #left 
+            row[int(idx*2-1)] = 1/6
+            # Mid point
+            row[int(idx*2)] = 1/2  
+
+        elif is_less_than((1,m),point,"edge_b_u") & is_less_than(point,(m,m),"edge_b_u"): # upper row
+            # Down
+            row[int(idx*2-m)] = 1/6
+            # Right 
+            row[int(idx*2+1)] = 1/6
+            #left 
+            row[int(idx*2-1)] = 1/6
+            # Mid point
+            row[int(idx*2)] = 1/2  
+
+        elif is_less_than((1,1),point,"edge_l_r") & is_less_than(point,(1,m),"edge_l_r"):  # left side 
+            # Up 
+            row[int(idx*2+m)] = 1/6
+            # Down
+            row[int(idx*2-m)] = 1/6
+            # Right 
+            row[int(idx*2+1)] = 1/6
+            # Mid point
+            row[int(idx*2)] = 1/2 
+
+        elif is_less_than((m,1),point,"edge_l_r") & is_less_than(point,(m,m),"edge_l_r"): # right side 
+            # Up 
+            row[int(idx*2+m)] = 1/6
+            # Down
+            row[int(idx*2-m)] = 1/6
+            #left 
+            row[int(idx*2-1)] = 1/6
+            # Mid point
+            row[int(idx*2)] = 1/2 
+
+        else: # Mid points, we use all of the points in the stencil
+            # Up 
+            row[int(idx*2+m)] = 1/8
+            # Down
+            row[int(idx*2-m)] = 1/8
+            # Right 
+            row[int(idx*2+1)] = 1/8
+            #left 
+            row[int(idx*2-1)] = 1/8
+            # Mid point
+            row[int(idx*2)] = 1/2 
+
+    # Deleting first column due to 1-indexing
+    R = R[:,1:]
+
+    return csc_matrix(R)
 
 def interpolate(P,ec):    
 
@@ -360,38 +369,123 @@ def interpolate(P,ec):
                 
     return e
 
+def coarsen(R,res):
+
+    # residual of coarse 
+    r_coarse = R@res
+
+    return r_coarse
+
 def VCM(A,R,P,u,f,l,m):
 
     omega = 2/3
 
     if l == 1:
         u = spsolve(A,f)
-    else:
+    else: 
         u = smooth(u,omega,m,f)
         r_f = f+Amult(u,m)
         r_c = coarsen(R,r_f)
-        e_c = np.zeros(int((m*m-1)/2))
-        e_c = VCM(R@A@P,R,P,e_c,r_c,l-1,m)
+        m_c = int((u.size-1)/2)
+        e_c = np.zeros(m_c)
+        e_c = VCM(R@A@P,R,P,e_c,r_c,l-1,int(np.sqrt(m_c)))
         e_f = interpolate(P,e_c)
         u = u + e_f
         u = smooth(u,omega,m,f)
+        
     return u
 
+import matplotlib.pyplot as plt 
 
-k=2
-m = 2**k - 1
-R = generate_P(m) 
-print(R.shape)   
-#matrix_figure(R)
-
+k = 7
+m = 2**k - 1 # m*m is the grid
 l = 2
 A = poisson_A5(m)
 f = poisson_b5(m)
-#R = generate_R(m) #Mangler
+
 P = generate_P(m) 
+R = generate_R(m)
+
 u = np.zeros(m*m)
 
-u_test = VCM(A,R,P,u,f,l,m)
+#u_solution = VCM(A,R,P,u,f,l,m)
 
+""" u_solution = u_solution.reshape(m, m)
+x = np.linspace(0,1,m+2)
+y = np.linspace(0,1,m+2)
 
+X,Y = np.meshgrid(x[1:-1],y[1:-1])
 
+u_exact = exactfunc(X,Y)
+
+err = u_exact-u_solution
+
+fig, ax = plt.subplots(1, 3, figsize=(14, 4))
+
+cbar_fraction = 0.045
+
+ax0 = ax[0].pcolormesh(X, Y, u_exact)
+ax[0].set_title("Exact Solution")
+ax[0].set_aspect('equal', 'box')
+ax[0].set_xlabel("x")
+ax[0].set_ylabel("y")
+fig.colorbar(ax0, ax=ax[0], fraction=cbar_fraction)
+
+ax1 = ax[1].pcolormesh(X, Y, u_solution)
+ax[1].set_title("Numerical Solution")
+ax[1].set_aspect('equal', 'box')
+ax[1].set_xlabel("x")
+ax[1].set_ylabel("y")
+fig.colorbar(ax1, ax=ax[1], fraction=cbar_fraction)
+
+ax2 = ax[2].pcolormesh(X, Y, err)
+ax[2].set_title("Error")
+ax[2].set_aspect('equal', 'box')
+ax[2].set_xlabel("x")
+ax[2].set_ylabel("y")
+fig.colorbar(ax2, ax=ax[2], fraction=cbar_fraction)
+
+fig.subplots_adjust(wspace=0.3) """
+
+from numpy.linalg import norm
+
+N = 8
+H = np.zeros(N-5)
+E_inf = np.zeros(N-5)
+
+for k in range(5,N):
+    print(k)
+    
+    m = 2**k-1
+    
+    H[k-5] = 1/(m+1)
+    
+    x = np.linspace(0,1,m+2)
+    y = np.linspace(0,1,m+2)
+
+    l = 2
+    A = poisson_A5(m)
+    f = poisson_b5(m)
+    u = np.zeros(m*m)
+
+    P = generate_P(m) 
+    R = generate_R(m)
+
+    u_solution = VCM(A,R,P,u,f,l,m)
+    u_solution = u_solution.reshape(m, m)
+
+    X,Y = np.meshgrid(x[1:-1],y[1:-1])
+
+    u_exact = exactfunc(X,Y)
+    e_i = abs(u_solution-u_exact)
+    E_inf[k-5] = np.max(e_i)
+    
+a,b = np.polyfit(np.log(H), np.log(E_inf), 1)
+print(a)
+plt.figure()
+plt.plot(np.log(H),np.log(E_inf),"o-",color="green",label="Inifinity norm of global error")
+plt.plot(np.log(H),b+a*np.log(H),color="red",label="Helper line of order 2")
+plt.xlabel(r"$\log(h)$")
+plt.ylabel(r"$\log(E)$")
+plt.legend()
+plt.show()
