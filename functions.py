@@ -533,6 +533,14 @@ G = I + omega*h**2*A/4
 condition_number = np.linalg.cond(G)
 print("cond of G", condition_number)
 
+Gk = np.copy(G)
+for k in range(10):
+    Gk *= G
+    print(np.max(np.abs(Gk)))
+
+vals,vecs = np.linalg.eig(G)
+eig_max = np.max(np.abs(vals))
+
 # Allans code
 M = np.diag(np.diag(A))
 N=M-A
