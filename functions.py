@@ -110,9 +110,9 @@ def poisson_b9(m,correction):
                 b[k-1] = -4*exactfunc(x[i+1],y[j])/(6*h**2) -exactfunc(x[i+1],y[j-1])/(6*h**2) -exactfunc(x[i+1],y[j+1])/(6*h**2)
             
             if correction:
-                b[k-1] += f(x[i],y[j]) + h**2/12*f_nab2(x[i],y[j]) # tilføjelse af f i b vektoren
+                b[k-1] += f_func(x[i],y[j]) + h**2/12*f_nab2(x[i],y[j]) # tilføjelse af f i b vektoren
             else:
-                b[k-1] += f(x[i],y[j]) # tilføjelse af f i b vektoren
+                b[k-1] += f_func(x[i],y[j]) # tilføjelse af f i b vektoren
  
     return b 
 
@@ -149,12 +149,12 @@ def Amult(U,m):
                 result[k-1] = -4*U[k_c] + U[k_c+m] + U[k_c-1] + U[k_c-m] + U[k_c+1] # Rest follows the equation
 
     # -A**h * U
-    return -result/(h**2)
+    return result/(h**2)
 
-def matrix_figure(A):
+def matrix_figure(A,i):
     import matplotlib.pyplot as plt
     fig = plt.figure()
-    plt.title("Matrix structure")
+    plt.title(f"Matrix structure{i}")
     img = plt.imshow(A)
     fig.colorbar(img)
     plt.xlabel("k: node index")
@@ -449,6 +449,19 @@ def generate_R(m):
 
     return csc_matrix(R)
 
+def compute_err(u):
+    m = int(np.sqrt(len(u)))
+    u = u.reshape(m, m)
+    x = np.linspace(0,1,m+2)
+    y = np.linspace(0,1,m+2)
+    
+    X,Y = np.meshgrid(x[1:-1],y[1:-1])
+    
+    u_exact = exactfunc(X,Y)
+    
+    err = u_exact-u
+    return err
+
 def interpolate(P,ec):    
 
     e = P@ec
@@ -468,129 +481,63 @@ def smooth(U,omega,m,F):
     h = 1/(m+1)
 
     # Dervied from eq. (4.88)
-    Unew = U+(omega*h**2/4)*Amult(U, m) + omega*F
+    Unew = U+(omega*h**2/4)*Amult(U, m) - omega*(h**2/4)*F
 
-    return Unew
+    return Unew 
 
 def VCM(A,R,P,u,f,l,m):
-
+    
     omega = 2/3
 
     if l == 1:
         u = spsolve(A,f)
     else: 
-        u = smooth(u,omega,m,f)
-        r_f = f+Amult(u,m)
+        for _ in range(20):
+            u = smooth(u,omega,m,f)
+        r_f = f-Amult(u,m)
         r_c = coarsen(R,r_f)
         m_c = int((u.size-1)/2)
         e_c = np.zeros(m_c)
         e_c = VCM(R@A@P,R,P,e_c,r_c,l-1,int(np.sqrt(m_c)))
         e_f = interpolate(P,e_c)
         u = u + e_f
-        u = smooth(u,omega,m,f)
+        for _ in range(20):
+            u = smooth(u,omega,m,f)
         
     return u
 
-#%%
-
-k = 3
-m = 2**k - 1 # m*m is the grid
-l = 2
-A = poisson_A5(m)
-f = poisson_b5(m)
-
-P = generate_P(m) 
-R = generate_R(m)
-
-u = np.zeros(m*m)
-
-u_solution = VCM(A,R,P,u,f,l,m)
-
-
-
-#%% Marcus test
-
-m = 20
-A = poisson_A5(m)
-f = poisson_b5(m)
-u_direct = spsolve(A,f)
-
-plot_u_vec(u_direct)
-
-
-omega = 2/3
-u_iter = np.zeros(m*m)
-for _ in range(100):
-    u_iter = smooth(u_iter,omega,m,f)
-plot_u_vec(u_iter)
-
-#plot_multigrid(7, idx_from_zero=False)
-
-I = np.eye(m*m)
-h = 1/(m+1)
-A = A.toarray()
-G = I + omega*h**2*A/4
-condition_number = np.linalg.cond(G)
-print("cond of G", condition_number)
-
-Gk = np.copy(G)
-for k in range(10):
-    Gk *= G
-    print(np.max(np.abs(Gk)))
-
-vals,vecs = np.linalg.eig(G)
-eig_max = np.max(np.abs(vals))
-
-# Allans code
-M = np.diag(np.diag(A))
-N=M-A
-invM = np.linalg.inv(M)
-Gnew = invM @ N
-b = invM @ f
-
-condition_number = np.linalg.cond(Gnew)
-print("cond of Gnew", condition_number)
-
-#%% Convergence test
-from numpy.linalg import norm
-
-N = 8
-H = np.zeros(N-5)
-E_inf = np.zeros(N-5)
-
-for k in range(5,N):
-    print(k)
+def run_VCM(u0,tol,maxiter):
     
-    m = 2**k-1
-    
-    H[k-5] = 1/(m+1)
-    
-    x = np.linspace(0,1,m+2)
-    y = np.linspace(0,1,m+2)
-
+    m = int(np.sqrt(u0.size))
     l = 2
     A = poisson_A5(m)
     f = poisson_b5(m)
-    u = np.zeros(m*m)
-
     P = generate_P(m) 
     R = generate_R(m)
 
-    u_solution = VCM(A,R,P,u,f,l,m)
-    u_solution = u_solution.reshape(m, m)
+    uk = u0
+    r = Amult(uk,m)-f
+    iter = 0
+    converge = False
 
-    X,Y = np.meshgrid(x[1:-1],y[1:-1])
-
-    u_exact = exactfunc(X,Y)
-    e_i = abs(u_solution-u_exact)
-    E_inf[k-5] = np.max(e_i)
+    while not converge or iter > maxiter:
+        uk =  VCM(A,R,P,uk,f,l,m)
+        r = Amult(uk,m)-f
+        iter += 1
+        converge = np.max(np.abs(r)) < tol 
     
-a,b = np.polyfit(np.log(H), np.log(E_inf), 1)
-print(a)
-plt.figure()
-plt.plot(np.log(H),np.log(E_inf),"o-",color="green",label="Inifinity norm of global error")
-plt.plot(np.log(H),b+a*np.log(H),color="red",label="Helper line of order 2")
-plt.xlabel(r"$\log(h)$")
-plt.ylabel(r"$\log(E)$")
-plt.legend()
-plt.show()
+    res = dict()
+    res["converged"] = converge
+    res["u"] = uk
+    res["iterations"] = iter
+
+    return res
+
+    
+
+    
+
+
+
+
+
