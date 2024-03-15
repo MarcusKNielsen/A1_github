@@ -90,7 +90,6 @@ F = poisson_b5(m)
 Uk = smooth(U,omega_opt,m,F)
 print("Test of smooth solver: Uk=",Uk)
 
-#%% Multipgrid solver
 
 
 

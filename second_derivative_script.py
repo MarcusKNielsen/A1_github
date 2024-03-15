@@ -3,7 +3,6 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 #%% Exercise c
 def u(x):
     return math.exp(math.cos(x))
@@ -95,7 +94,6 @@ plt.tight_layout()
 #plt.show()
 
 #%%
-
 
 def test(k):
     return 11*(-4)**k - 56*(-3)**k + 114*(-2)**k - 104*(-1)**k

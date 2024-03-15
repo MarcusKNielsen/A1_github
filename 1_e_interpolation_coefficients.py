@@ -15,5 +15,3 @@ solution = solve((eq0, eq1, eq2), (am2, am1, a0))
 solution
 
 
-
-

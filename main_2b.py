@@ -134,7 +134,7 @@ for i in range(N):
     u_solution5 = u_solution5.reshape(m, m)
     u_solution9 = u_solution9.reshape(m, m)
 
-    # the error and norm of the error
+    # the error and norm of the error 
     err5 = np.abs(u_solution5-u_exact)
     err9 = np.abs(u_solution9-u_exact)
     E5_inf[i] = np.max(err5)

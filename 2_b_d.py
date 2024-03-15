@@ -7,7 +7,7 @@ def exactfunc(x,y):
 
 def f(x,y): 
     term1 = 2*np.sin(4*np.pi*(x+y))
-    term2 = (x**2+y**2)*np.cos(4*np.pi*x*y)
+    term2 = (x**2+y**2)*np.cos(4*np.pi*x*y) 
     return -(4*np.pi)**2*(term1+term2)
 
 def f_nab2(x,y):
