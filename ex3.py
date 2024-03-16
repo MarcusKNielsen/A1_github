@@ -12,24 +12,32 @@ U = np.ones(m*m)
 AU = Amult(U,m)
 AU2 = poisson_A5(m)@U
 
+xk_cg = []
 res_cg = []
 iter_cg = []
 def report_cg(xk):
     frame = inspect.currentframe().f_back
+    xk_cg.append(xk)
     res_cg.append(frame.f_locals['resid'])
     iter_cg.append(frame.f_locals['iter_'])
 
+xk_pcg = []
 res_pcg = []
 iter_pcg = []
 def report_pcg(xk):
     frame = inspect.currentframe().f_back
+    xk_pcg.append(xk)
     res_pcg.append(frame.f_locals['resid'])
     iter_pcg.append(frame.f_locals['iter_'])
     
 #%% Conjugate gradient method 
+
+def error_bound(cond,k):
+    return 2 * ( (np.sqrt(cond) - 1)/(np.sqrt(cond) + 1) )**k
+
 A_sp = poisson_A5(m)
 e = np.ones((m*m, 1))
-M = inv(spdiags([e.flatten(),e.flatten(),e.flatten(),-10*e.flatten(),e.flatten(),e.flatten(),e.flatten()], [-m-1,-m,-1,0,1,m,m+1], m*m,m*m)) 
+M = inv(spdiags([e.flatten(),e.flatten(),e.flatten(),-10*e.flatten(),e.flatten(),e.flatten(),e.flatten()], [-m-1,-m,-1,0,1,m,m+1], m*m,m*m))
 F = poisson_b5(m)
 u_cg,info_cg = cg(-A_sp,-F,M=None,callback=report_cg)
 u_pcg,info_pcg = cg(-A_sp,-F,M=M,callback=report_pcg)
@@ -41,11 +49,15 @@ fig.colorbar(img)
 plt.xlabel("k: node index")
 plt.ylabel("k: node index")
 
+
+condA = np.linalg.cond(-A_sp.toarray())
+print("cond of A", condA)
 print("cond of precond:",np.linalg.cond(M.toarray()@A_sp.toarray()))
-print("cond of A", np.linalg.cond(A_sp.toarray()))
+
 plt.figure()
-plt.plot(iter_cg,res_cg,color="blue",label="cg method")
-plt.plot(iter_pcg,res_pcg,color="green",label="pcg method")
+plt.plot(iter_cg,res_cg,"-o",color="blue",label="cg method")
+plt.plot(iter_pcg,res_pcg,"-o",color="green",label="pcg method")
+plt.plot(iter_cg,error_bound(condA,iter_cg))
 plt.xlabel("Iteration")
 plt.ylabel("Residual")
 plt.legend()
