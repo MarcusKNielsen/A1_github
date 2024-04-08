@@ -7,7 +7,7 @@ from scipy.sparse.linalg import spsolve # scipy's sparse solver
 # Check that the sparse A matrix looks correct using imshow
 A_sparse = poisson_A5(4).todense()
 fig = plt.figure()
-plt.title("Sparse Laplacian Matrix Structure")
+plt.title("A Matrix Structure")
 img = plt.imshow(A_sparse)
 fig.colorbar(img)
 plt.xlabel("k: node index")

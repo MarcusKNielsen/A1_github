@@ -228,7 +228,7 @@ def plot_u_vec(u):
     
     err = u_exact-u
     
-    fig, ax = plt.subplots(1, 3, figsize=(14, 4))
+    fig, ax = plt.subplots(1, 3, figsize=(10, 4))
     
     cbar_fraction = 0.045
     
@@ -253,7 +253,7 @@ def plot_u_vec(u):
     ax[2].set_ylabel("y")
     fig.colorbar(ax2, ax=ax[2], fraction=cbar_fraction)
     
-    fig.subplots_adjust(wspace=0.3)
+    fig.subplots_adjust(wspace=0.4)
 
 def eigenvalues_5point_relax(h,p,q,omega):
 
