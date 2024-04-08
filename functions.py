@@ -533,11 +533,6 @@ def run_VCM(u0,tol,maxiter):
 
     return res
 
-    
-
-    
-
-
 
 
 

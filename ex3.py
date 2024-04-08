@@ -27,7 +27,7 @@ def report_pcg(xk):
     iter_pcg.append(frame.f_locals['iter_'])
     
 #%% Conjugate gradient method 
-A_sp = poisson_A5(m)
+""" A_sp = poisson_A5(m)
 e = np.ones((m*m, 1))
 M = inv(spdiags([e.flatten(),e.flatten(),e.flatten(),-10*e.flatten(),e.flatten(),e.flatten(),e.flatten()], [-m-1,-m,-1,0,1,m,m+1], m*m,m*m)) 
 F = poisson_b5(m)
@@ -49,7 +49,7 @@ plt.plot(iter_pcg,res_pcg,color="green",label="pcg method")
 plt.xlabel("Iteration")
 plt.ylabel("Residual")
 plt.legend()
-plt.title("Convergence plot of pcg method")
+plt.title("Convergence plot of pcg method") """
 
 #%% Jacobi and under relaxed Jacobi
 
@@ -75,7 +75,7 @@ for mi in m:
     plt.legend()
 
 plt.hlines(1,xmin=np.min(omega),xmax=np.max(omega),label="threshold of 1",color="black",linestyle="dashed")
-plt.vlines(2/3,ymin=0,ymax=3,color="red",linestyle="dashed")
+plt.vlines(2/3,ymin=0,ymax=3,color="red",linestyle="dashed",label=r"Optimal $\omega=\frac{2}{3}$ ")
 plt.legend()
 
 plt.show()

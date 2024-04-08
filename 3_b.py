@@ -52,8 +52,8 @@ print("Max eigenvalue",eig_max) """
 #%% Convergence test
 from numpy.linalg import norm
 
-N = 7
-start = 4
+N = 8
+start = 3
 H = np.zeros(N-start)
 E_inf = np.zeros(N-start)
 
@@ -81,3 +81,4 @@ plt.xlabel(r"$\log(h)$")
 plt.ylabel(r"$\log(E)$")
 plt.legend()
 plt.savefig("Convergence plot.png")
+plt.show()
