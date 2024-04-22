@@ -21,9 +21,8 @@ for s_i in s:
 
 a,b = np.polyfit(np.log(H),np.log(E),1)
 plt.figure()
-plt.plot(np.log(H),np.log(E),"o-","b",label="convergence test")
-plt.plot(np.log(H),a*np.log(H)+b,"-","r",label="Helper line of order 2")
-print(a)
+plt.plot(np.log(H),np.log(E),"bo-",label="convergence test")
+plt.plot(np.log(H),a*np.log(H)+b,"r-",label="Helper line of order 2")
 plt.legend()
 plt.show()
 
