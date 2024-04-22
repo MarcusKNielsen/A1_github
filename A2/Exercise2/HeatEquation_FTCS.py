@@ -8,7 +8,7 @@ def u_exact(x,t):
     term2 = np.exp(-eps *  4**2 * t) * np.cos( 4*x)
     term3 = np.exp(-eps * 16**2 * t) * np.cos(16*x)
     return term1 + term2 + term3
-
+ 
 # Define the size of your matrix
 m = 2**8  # Replace with the actual size of your matrix
 
@@ -19,10 +19,10 @@ main_diag = -2 * np.ones(m)
 off_diag = np.ones(m - 1)
 
 # Create the diagonals
-diagonals = [off_diag,main_diag, off_diag]
+diagonals = [off_diag,main_diag,off_diag]
 
 # Create A matrix
-h = 1/(m+1)
+h = 2/(m+1)
 A = diags(diagonals, [-1, 0, 1], format='csr') / (h**2)
 
 k = h**2
@@ -40,8 +40,8 @@ g = np.zeros([m,1])
 T = 0.1
 t = 0
 
-Tarr = np.zeros(int(T/k)+2)
-Uarr = np.zeros([int(T/k)+2,m])
+Tarr = np.zeros(int(np.ceil(T/k))+1)
+Uarr = np.zeros([int(np.ceil(T/k))+1,m])
 Uarr[0,:] = U.ravel()
 i = 1
 
@@ -60,7 +60,7 @@ while t < T:
     # update time
     t += k
     Tarr[i] = t
-
+    
     # update counter
     i += 1
     
@@ -103,6 +103,7 @@ ax[2].set_ylabel("t")
 fig.colorbar(ax2, ax=ax[2], fraction=cbar_fraction)
 
 fig.subplots_adjust(wspace=0.4)
+plt.show()
 
 #%%
 

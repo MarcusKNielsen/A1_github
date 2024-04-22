@@ -75,7 +75,7 @@ def solve(m):
 
 
 E = []
-s = np.arange(2,10)
+s = np.arange(2,7)
 H = []
 for i in range(len(s)):
     m = 2**s[i] - 1
@@ -86,7 +86,7 @@ for i in range(len(s)):
 
 import matplotlib.pyplot as plt
 plt.plot(np.log(H),np.log(E),"o-")
-
+plt.show()
 
 
 
