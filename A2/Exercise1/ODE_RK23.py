@@ -1,8 +1,10 @@
 import numpy as np 
+import matplotlib.pyplot as plt
 
 def Model(t,y):
     # Function from the problem description
     return y**2-y**3
+
 
 def RK32(Model,h,yn,tn,A,b,c,d):
 
@@ -30,21 +32,19 @@ def RK32(Model,h,yn,tn,A,b,c,d):
 
 def control_stepsize(h,tol,p,errp1):
 
-    # Slide 102, week 9 IVP2
-    h_opt = h*(tol/errp1)**(1/p)
+    # Slide 102, week 9 IVP2 (PI controller)
+    h_opt = min(0.5,h*(tol/errp1)**(1/p))
 
     return h_opt
 
-def Solve_RK32():
+def Solve_RK32(delta,maxiter,reps,aeps):
 
-    yn = np.zeros(500000)
-    tn = np.zeros(500000)
-    delta = 0.2                 # from problem description
+    yn = np.zeros(int(maxiter))
+    tn = np.zeros(int(maxiter))
+    
     y0 = delta 
     yn[0] = y0
     h = 2 
-    reps = 1e-3
-    aeps = 1e-3 
     tn[0] = 0 
     T = 2/delta
     iter = 0
@@ -61,7 +61,7 @@ def Solve_RK32():
     d = b3-b2                    # error weights (The 'good' minus the 'bad')tn
 
     # Running until the desired time for function evaluation is reached
-    while tn[iter] < T:
+    while tn[num_accept] < T and iter < maxiter:
         
         # Computing the RK using the current h, time tn and function evaluation yn
         ynp1, errp1 = RK32(Model,h,yn[num_accept],tn[num_accept],A,b3,c,d) 
@@ -80,31 +80,36 @@ def Solve_RK32():
             yn[num_accept] = ynp1
             tn[num_accept] = tn[num_accept-1]+h
         
-        if tn[num_accept] > T:
-            return yn,tn,iter,num_accept
-        elif iter % 100 == 0:  
-            print(f"Progress: {tn[num_accept]/T*100:2f}%",end="\r")
-        print(f"Progress: {tn[num_accept]/T*100:2f}%",end="\r")
         # Updating the step size h
         h = control_stepsize(h,tol,2,errp1) 
 
         # Ensuring that we do not overshoot the time 
         if tn[num_accept]+h>T:
-            h = T-tn[num_accept] # Now we are at the final time T
+            h = T-tn[num_accept] # Now we are at the final time T 
         
         iter += 1
     
-    return yn,tn,iter,num_accept
-
-yn,tn,iter,num_accept = Solve_RK32()
-
-True
+    return yn[:num_accept],tn[:num_accept],iter,num_accept
 
 
+delta = [0.02,0.01,0.008,0.001] # from problem description     
+maxiter = 10e4
+reps = 1e-4
+aeps = 1e-2
 
+fig,ax = plt.subplots(2,2)
+ax = ax.flatten() 
 
+for i,d in enumerate(delta):
 
-    
+    yn,tn,iter,num_accept = Solve_RK32(d,maxiter,reps,aeps)
+    ax[i].plot(tn,yn,label=rf"$\delta$={np.round(d,5)}")
+    ax[i].legend()
+    ax[i].set_xlabel("t") 
+    ax[i].set_ylabel("y")  
+
+plt.tight_layout()
+plt.show()    
 
 
 
