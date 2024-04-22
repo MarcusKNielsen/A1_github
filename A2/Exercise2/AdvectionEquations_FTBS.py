@@ -2,56 +2,57 @@ import numpy as np
 from scipy.sparse import diags
 import matplotlib.pyplot as plt
 
-def u_exact(x,t,eps):
-    term1 = np.exp(-eps *  1**2 * t) * np.cos( 1*x)
-    term2 = np.exp(-eps *  4**2 * t) * np.cos( 4*x)
-    term3 = np.exp(-eps * 16**2 * t) * np.cos(16*x)
-    return term1 + term2 + term3
+def u_exact(x,t,a):
+    
+    y = x-a*t
+    func = np.sin(2*np.pi*y)
+
+    return func
  
-def solve_diffusion(m,eps):
+def solve_advection(m,a):
+
+    # Number of spacial grid points
+    N = m+2
+
     # Define the main diagonal
-    main_diag = -2 * np.ones(m)
+    main_diag = np.ones(N)
 
     # Define the off diagonals
-    off_diag = np.ones(m - 1)
+    off_diag = -1*np.ones(N - 1)
+    
+    one_diag = -1*np.ones(1)
 
     # Create the diagonals
-    diagonals = [off_diag,main_diag,off_diag]
+    diagonals = [off_diag,main_diag,one_diag]
 
     # Create A matrix
-    h = 2/(m+1)
-    A = diags(diagonals, [-1, 0, 1], format='csr') / (h**2)
+    h = 2/(N-1)
+    A = -a*diags(diagonals, [-1, 0, N-1], format='csr') / h
 
-    k = h**2
+    k = h
 
-    if not (k*eps/h**2 <= 0.5):
+    if not (k*a/h <= 1):
         raise Exception("Invalid scheme")
      
-    def forward(U,g):
-        return U+eps*k*A@U + eps*k*g
+    def forward(U,k):
+        return k*A@U + U
 
-    x = np.linspace(-1,1,m+2)
-    U = u_exact(x[1:-1],0,eps).reshape((m, 1))
-    g = np.zeros([m,1])
+    x = np.linspace(-1,1,N)
+    U = u_exact(x,0,a).reshape((N, 1))
 
-    T = 0.1
+    T = 1
     t = 0
 
-    Tarr = np.zeros(int(np.ceil(T/k))+1)
-    Uarr = np.zeros([int(np.ceil(T/k))+1,m])
+    M = int(np.ceil(T/k))+1
+    Tarr = np.zeros(M)
+    Uarr = np.zeros([M,N])
     Uarr[0,:] = U.ravel()
+
     i = 1
-
-    #%%
-
     while t < T:
         
-        # Update boundary
-        g[0]  = u_exact(-1,t,eps) / (h**2)
-        g[-1] = u_exact( 1,t,eps) / (h**2)
-        
         # Update solution
-        U = forward(U,g)
+        U = forward(U,k)
         Uarr[i,:] = U.ravel()
         
         # update time
@@ -64,13 +65,13 @@ def solve_diffusion(m,eps):
     return Tarr, Uarr, x
     
 
-def solution_check(Tarr, u, x, eps, plot):
+def solution_check(Tarr, u, x, a, plot):
 
     # Computing the error 
-    X,T_mesh = np.meshgrid(x[1:-1],Tarr)
+    X,T_mesh = np.meshgrid(x,Tarr)
 
-    uexact = u_exact(X,T_mesh,eps)
- 
+    uexact = u_exact(X,T_mesh,a)
+
     # Computing error first
     err = uexact-u
 
@@ -108,7 +109,9 @@ if __name__ == "__main__":
 
     # Define the size of your matrix
     m = 2**8  # Replace with the actual size of your matrix
-    eps = 0.1
+    a = 0.5
 
-    Tarr, Uarr, x = solve_diffusion(m,eps)
-    solution_check(Tarr, Uarr, x,eps, True)
+    Tarr, Uarr, x = solve_advection(m,a)
+    solution_check(Tarr, Uarr, x, a, True)
+
+
