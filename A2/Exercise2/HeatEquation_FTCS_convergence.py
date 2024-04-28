@@ -7,7 +7,7 @@ eps = 0.1
 E = []
 H = []
 
-s = np.arange(2,7)
+s = np.arange(2,11)
 for s_i in s:
 
     m = 2**s_i - 1
