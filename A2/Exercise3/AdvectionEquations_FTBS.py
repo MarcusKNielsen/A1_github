@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 def u_exact(x,t,a):
     
     y = x-a*t
-    func = np.sin(2*np.pi*y)
+    func = np.sin(2*np.pi*y) 
 
     return func
  
-def solve_advection(m,a):
+def solve_advection(m,a,k=None,T=None):
 
     # Number of spacial grid points
     N = m+2
@@ -29,7 +29,8 @@ def solve_advection(m,a):
     h = 2/(N-1)
     A = -a*diags(diagonals, [-1, 0, N-1], format='csr') / h
 
-    k = h
+    if not k:
+        k = h
 
     if not (k*a/h <= 1):
         raise Exception("Invalid scheme")
@@ -40,7 +41,8 @@ def solve_advection(m,a):
     x = np.linspace(-1,1,N)
     U = u_exact(x,0,a).reshape((N, 1))
 
-    T = 1
+    if not T:
+        T = 1
     t = 0
 
     M = int(np.ceil(T/k))+1

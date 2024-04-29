@@ -3,7 +3,7 @@ from scipy.sparse import diags
 from AdvectionEquations_FTBS import*
 import matplotlib.pyplot as plt
 
-a_input = 0.5
+a_input = 0.5 
 E = []
 H = []
 
