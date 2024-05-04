@@ -7,7 +7,7 @@ eps = 0.1
 E = []
 H = []
 
-s = np.arange(2,11)
+s = np.arange(2,10)
 for s_i in s:
 
     m = 2**s_i - 1
@@ -19,11 +19,17 @@ for s_i in s:
     E.append(np.max(np.abs(err)))
     H.append(h)
 
+ms = 14
+
 a,b = np.polyfit(np.log(H),np.log(E),1)
 plt.figure()
-plt.plot(np.log(H),np.log(E),"bo-",label="convergence test")
-plt.plot(np.log(H),a*np.log(H)+b,"r-",label="Helper line of order 2")
-plt.legend()
+plt.plot(np.log(H),np.log(E),"bo-",label="Empirical")
+plt.plot(np.log(H),2*np.log(H)+3,"r-",label=r"$O(h^2)$")
+plt.xlabel(r"$\log(h)$",fontsize=ms)
+plt.ylabel(r"$\log(\Vert E^N \Vert_\infty )$",fontsize=ms)
+plt.title(r"Convergence Test with $k=h^2$",fontsize=ms+1)
+plt.legend(fontsize=ms-1)
+plt.subplots_adjust(left=0.15,bottom=0.15)
 plt.show()
 
 
