@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 m = 100
 
 def r(p,c):
-    return np.sqrt(( 1-c )**2 + c**2 + 2*( 1-c )*c*np.cos(2*np.pi*p/(m+1)))
+    return np.sqrt(( 1-c )**2 + c**2 + 2*( 1-c )*c*np.cos(4*np.pi*p/(m+1)))
  
-p = np.linspace(1,m+1,m+1)
- 
+p = np.linspace(0,m+1,m+1)
+
 plt.figure()
 plt.plot(p,r(p,0.2),label="c=0.2")
 plt.plot(p,r(p,0.5),label="c=0.5")
