@@ -30,7 +30,7 @@ def solve_advection(m,a,k=None,T=None):
     A = -a*diags(diagonals, [-1, 0, N-1], format='csr') / h
 
     if not k:
-        k = h
+        k = h/a
 
     if not (k*a/h <= 1):
         raise Exception("Invalid scheme")
@@ -115,7 +115,7 @@ def solution_check(Tarr, u, x, a, plot):
 if __name__ == "__main__":
 
     # Define the size of your matrix
-    m = 2**6  # Replace with the actual size of your matrix
+    m = 2**10  # Replace with the actual size of your matrix
     a = 0.5
 
     Tarr, Uarr, x = solve_advection(m,a)
