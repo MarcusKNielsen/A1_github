@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 def u_exact(x,t,a):
     
     y = x-a*t
-    func = np.sin(2*np.pi*y) 
+    func = np.sin(2*np.pi*y)
 
     return func
  
@@ -120,5 +120,3 @@ if __name__ == "__main__":
 
     Tarr, Uarr, x = solve_advection(m,a)
     solution_check(Tarr, Uarr, x, a, True)
-
-

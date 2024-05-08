@@ -30,14 +30,18 @@ u_ex = u_exact(x,T,a_input)
 def g_mag(theta,c):
     return np.sqrt(1+2*c*(c-1)*(1-np.cos(theta)))
 
-U0 = u_exact(x,0,a_input)
+y = angle_dispersion(2*np.pi*h,Cr)
+n = (T/k)
+U0 = u_exact(x+n*y/(2*np.pi),0,a_input)
 G_sol = U0*g_mag(2*np.pi*h,Cr)**(T/k)
 
 plt.figure()
 plt.plot(x,u_ex,label="Exact")
-plt.plot(x,Uarr[-1:].ravel(),'-o',markersize = 4,markerfacecolor='none',label="Sol")
-plt.plot(x,G_sol,label = "G")
+plt.plot(x,Uarr[-1:].ravel(),'-',markersize = 4,markerfacecolor='none',label="Numerical")
+plt.plot(x,G_sol,label = "Prediction")
 plt.legend() 
+
+#%%
 
 plt.figure()
 theta = np.linspace(0,7,100)
@@ -50,6 +54,8 @@ plt.xlabel(r"$\theta$")
 plt.ylabel(r"$|g(\xi)|$")
 plt.legend()
 plt.show() 
+
+
 
 
 
