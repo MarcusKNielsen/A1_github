@@ -58,12 +58,22 @@ def U_initial(x,t,eps):
     
     return -np.sin(np.pi*x)
 
-def forward(t,U,eps,k,h,U_func):
+def forward_time_mix_space(t,U,eps,k,h,U_func):
 
     N = len(U)
     Unxt = np.zeros(N)
 
-    Unxt[1:-1] = U[1:-1] + (eps*k/h**2) *(U[0:-2]-2*U[1:-1] + U[2:]) - (k/h)*(U[1:-1]*(U[1:-1]-U[0:-2]))
+    DU = np.zeros(N-2)
+
+    for i in range(1,len(U)-1):
+
+        if U[i] > 0:
+            DU[i-1] = (1/h)*(U[i]-U[i-1])
+        elif U[i] < 0:
+            DU[i-1] = (1/h)*(U[i+1]-U[i])
+
+
+    Unxt[1:-1] = U[1:-1] + (eps*k/h**2) *(U[0:-2]-2*U[1:-1] + U[2:]) - k*(U[1:-1]*DU)
 
     Unxt[0] = U_func(-1,t,eps)
     Unxt[-1] = U_func(1,t,eps)
@@ -96,20 +106,46 @@ def solve_Burgers(T,m,eps,U_func):
 
     while t[j] < T:
 
-        U[j+1,:] = forward(t[j],U[j,:],eps,k,h,U_func)
+        U[j+1,:] = forward_time_mix_space(t[j],U[j,:],eps,k,h,U_func)
 
         t[j+1] = t[j] + k
         j += 1
 
-    return t,U,x 
+    return t,U,x,h
 
+
+m = 2**8 - 1
+#Tarr, Uarr, x = solve_Burgers(1,m,0.1,U_exact)
+#err = solution_check(Tarr, Uarr, x, 0.1,U_exact, plot=True)
 
 eps = 0.01/np.pi
 T = 1.6037/np.pi
-m = 100
-t,U,x = solve_Burgers(T,m,eps,U_initial)
-solution_check(t, U, x, eps, U_initial, exact = False)
-closest_zero_index = np.argsort(abs(x))[:2]
+m = 1500+1
+t,U,x,h = solve_Burgers(T,m,eps,U_initial)
+#solution_check(t, U, x, eps, U_initial, exact = False)
+x_zero_index = np.argsort(abs(x))[:3]
+x_zero_index = np.sort(x_zero_index)
+Dx_0_c = (U[-1,x_zero_index[2]]-U[-1,x_zero_index[0]])/(2*h)
+Dx_0_f = (-U[-1,x_zero_index[1]]+U[-1,x_zero_index[2]])/h
+Dx_0_b = (U[-1,x_zero_index[1]]-U[-1,x_zero_index[0]])/h
+
+idx = np.sort(np.argsort(abs(x))[:5])
+Usol = U[-1,:]
+Dx_higher_stencil = (Usol[idx[0]]-8*Usol[idx[1]]+8*Usol[idx[3]]-Usol[idx[4]])/(12*h)
+
+idx = np.sort(np.argsort(abs(x))[:7])
+Usol = U[-1,:]
+Dx_higher_stencil2 = (-Usol[idx[0]]+9*Usol[idx[1]]-45*Usol[idx[2]]+45*Usol[idx[4]]-9*Usol[idx[5]]+Usol[idx[6]])/(60*h)
+
+print(Dx_0_b,Dx_0_c,Dx_0_f,Dx_higher_stencil,Dx_higher_stencil2)
+
+plt.figure()
+plt.plot(x,U[-1],"-o")
+plt.show()
+
+Debug = True
+
+
 
 
 #%% Convergence 
@@ -119,12 +155,12 @@ eps = 0.1
 E = []
 H = []
 
-s = np.arange(5,11)
+s = np.arange(6,10)
 for s_i in s:
 
     # Compute solution and error
     m = 2**s_i - 1
-    Tarr, Uarr, x = solve_Burgers(T,m,eps,U_exact)
+    Tarr, Uarr, x, h = solve_Burgers(T,m,eps,U_exact)
     err = solution_check(Tarr, Uarr, x, eps,U_exact, plot=False)
 
     # append global error

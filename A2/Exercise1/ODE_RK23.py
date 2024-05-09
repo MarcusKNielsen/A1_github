@@ -93,7 +93,7 @@ def Solve_RK32(delta,maxiter,reps,aeps):
 
 
 delta = [0.02,0.01,0.008,0.001] # from problem description     
-maxiter = 10e4
+maxiter = 10e5
 reps = 1e-4
 aeps = 1e-2
 
