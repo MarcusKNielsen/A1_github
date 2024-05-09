@@ -32,7 +32,7 @@ def g_mag(theta,c):
 
 y = angle_dispersion(2*np.pi*h,Cr)
 n = (T/k)
-U0 = u_exact(x+n*y/(2*np.pi),0,a_input)
+U0 = u_exact(x-n*y/(2*np.pi),0,a_input)
 G_sol = U0*g_mag(2*np.pi*h,Cr)**(T/k)
 
 plt.figure()
