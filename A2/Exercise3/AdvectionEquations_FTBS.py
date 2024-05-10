@@ -115,7 +115,7 @@ def solution_check(Tarr, u, x, a, plot):
 if __name__ == "__main__":
 
     # Define the size of your matrix
-    m = 2**10  # Replace with the actual size of your matrix
+    m = 2**6  # Replace with the actual size of your matrix
     a = 0.5
 
     Tarr, Uarr, x = solve_advection(m,a)

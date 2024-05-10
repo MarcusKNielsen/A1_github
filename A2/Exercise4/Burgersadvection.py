@@ -14,26 +14,29 @@ def solution_check(Tarr, u, x, eps, U_exact, plot=True,exact = True):
     if plot == True:
 
         if exact:
-            fig, ax = plt.subplots(1, 3, figsize=(10, 4))
+            fig, axes = plt.subplots(1, 3, figsize=(10, 4))
 
-            cbar_fraction = 0.05
-            ax1 = ax[1].pcolormesh(X, T_mesh, uexact)
-            ax[1].set_title("Exact Solution")
-            ax[1].set_xlabel("x")
-            ax[1].set_ylabel("t")
-            fig.colorbar(ax1, ax=ax[1], fraction=cbar_fraction)
+            #cbar_fraction = 0.05
+            ax = axes[0]
+            cc = ax.pcolormesh(X, T_mesh, uexact)
+            ax.set_title(r"Exact Solution: $\hat{U}$")
+            ax.set_xlabel('x: space')
+            ax.set_ylabel('t: time')
+            fig.colorbar(cc, ax=ax)
+            
+            ax = axes[1]
+            cc = ax.pcolormesh(X, T_mesh, u)
+            ax.set_title(r"Numerical Solution: $U$")
+            ax.set_xlabel('x: space')
+            ax.set_ylabel('t: time')
+            fig.colorbar(cc, ax=ax)
 
-            ax2 = ax[2].pcolormesh(X, T_mesh, np.abs(err))
-            ax[2].set_title("Error")
-            ax[2].set_xlabel("x")
-            ax[2].set_ylabel("t")
-            fig.colorbar(ax2, ax=ax[2], fraction=cbar_fraction)
-
-            ax0 = ax[0].pcolormesh(X, T_mesh, u)
-            ax[0].set_title("Numerical Solution")
-            ax[0].set_xlabel("x")
-            ax[0].set_ylabel("t")
-            fig.colorbar(ax0, ax=ax[0], fraction=cbar_fraction)
+            ax = axes[2]
+            cc = ax.pcolormesh(X, T_mesh, err)
+            ax.set_title(r"Error: $U - \hat{U}$")
+            ax.set_xlabel('x: space')
+            ax.set_ylabel('t: time')
+            fig.colorbar(cc, ax=ax)
 
         else:
             fig, ax = plt.subplots(1, 1, figsize=(10, 4))
@@ -45,7 +48,7 @@ def solution_check(Tarr, u, x, eps, U_exact, plot=True,exact = True):
             ax.set_ylabel("t")
             fig.colorbar(ax0, ax=ax, fraction=cbar_fraction)
 
-        fig.subplots_adjust(wspace=0.4)
+        fig.subplots_adjust(wspace=0.5,bottom=0.2)
         plt.show()
 
     return err
@@ -114,14 +117,17 @@ def solve_Burgers(T,m,eps,U_func):
     return t,U,x,h
 
 
-m = 2**8 - 1
-#Tarr, Uarr, x = solve_Burgers(1,m,0.1,U_exact)
-#err = solution_check(Tarr, Uarr, x, 0.1,U_exact, plot=True)
+m = 2**5
+Tarr, Uarr, x, h = solve_Burgers(1,m,0.1,U_exact)
+err = solution_check(Tarr, Uarr, x, 0.1,U_exact, plot=True)
+
+#%%
 
 eps = 0.01/np.pi
 T = 1.6037/np.pi
 m = 1500+1
 t,U,x,h = solve_Burgers(T,m,eps,U_initial)
+
 #solution_check(t, U, x, eps, U_initial, exact = False)
 x_zero_index = np.argsort(abs(x))[:3]
 x_zero_index = np.sort(x_zero_index)
