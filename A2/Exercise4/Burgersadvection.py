@@ -95,15 +95,21 @@ def forward_higher_order(t,U,eps,k,h,U_func):
 
     return Unxt
 
+def check_stability(k,h,eps):
+    return eps*k/h**2 + k/h <= 0.5
+
 def solve_Burgers(T,m,eps,U_func):
 
     h = 2/(m+1)
-    k = h**2
+    k = 0.01
+    
+    print(f"Is the scheme stable? {check_stability(k,h,eps)}")
+    
     U = np.zeros([int(np.ceil(T/k))+1,m+2])
 
     t = np.zeros(int(np.ceil(T/k))+1)
     j = 0
-
+    
     x = np.linspace(-1,1,m+2)
     U[0,:] = U_func(x,0,eps)
 
@@ -118,8 +124,9 @@ def solve_Burgers(T,m,eps,U_func):
 
 
 m = 2**5
-Tarr, Uarr, x, h = solve_Burgers(1,m,0.1,U_exact)
-err = solution_check(Tarr, Uarr, x, 0.1,U_exact, plot=True)
+eps = 0.1
+Tarr, Uarr, x, h = solve_Burgers(1,m,eps,U_exact)
+err = solution_check(Tarr, Uarr, x, eps,U_exact, plot=True)
 
 #%%
 
