@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from stability_plot import get_stability_mesh
 
-M = 50
+M = 20
 eps = 0.1
 
 # 1
@@ -18,24 +18,11 @@ for i in range(len(tau)):
 
 #%%
 
-from scipy.optimize import fsolve
-
-def eq_con(x1):
-    def g(x2):
-        return 2*eps*x2/x1**2 + 2*x2/x1 - 1
-    
-    # Check if x1 is a scalar (single value)
-    if np.isscalar(x1):
-        # Handle scalar input
-        root = fsolve(g, 0)
-        return root[0]
-    else:
-        # Handle array input
-        return np.array([eq_con(element) for element in x1])
 
 H = np.linspace(10**(-2.2), 0.086, M)
 
-#%%
+def stability_cut(h,eps):
+    return 1/(2*eps/h**2 + 2/h)
 
 fs = 12 # fontsize
 
@@ -44,9 +31,6 @@ n,m = 2,2
 fig, axes = plt.subplots(n, m, figsize=(12, 12))
 
 plt.suptitle(r"Empirical: $S_e$", fontsize=fs+10)
-
-
-stability_cut = (np.abs(2*eps*k/h**2 + 2*k/h - 1) < 10**(-3))
 
 it = 0
 for i in range(n):
@@ -62,7 +46,8 @@ for i in range(n):
         cbar = fig.colorbar(contour, ax=ax, ticks=[0, 1])
         cbar.ax.set_yticklabels(['0.0', '1.0'],fontsize=fs)
         
-        ax.plot(H,eq_con(H),"r--",label=r"$\dfrac{2 \epsilon k}{h^2} + \dfrac{2k}{h} = 1$")
+        #ax.plot(H,eq_con(H),"r--",label=r"$\dfrac{2 \epsilon k}{h^2} + \dfrac{2k}{h} = 1$")
+        ax.plot(H,stability_cut(H,eps),"r--",label=r"$\dfrac{2 \epsilon k}{h^2} + \dfrac{2k}{h} = 1$")
         
         ax.legend(fontsize=fs+1)
         
