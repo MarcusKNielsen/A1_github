@@ -26,8 +26,8 @@ def get_stability_mesh(eps,M,tol):
             m = 2/h[i,j] - 2 
             stability_region[i,j] = solve_Burgers_stability_test(T,int(m),h[i,j],k[i,j],eps,U_exact,U_dx_exact,tol)
             
-            if n % 100 == 0:
-                print(f"Progress: {(n/N) * 100} %")
+            if n % 50 == 0:
+                print(f"Progress: {np.round((n/N) * 100,1)} %")
             
             n += 1
     return stability_region, k, h

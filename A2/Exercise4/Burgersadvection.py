@@ -1,32 +1,55 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def fdcoeffV(k,xbar,x):
+# def fdcoeffV(k,xbar,x):
 
-    # Function found in:
-    # https://rjleveque.github.io/amath585w2020/notebooks/html/fdstencil.html
+#     # Function found in:
+#     # https://rjleveque.github.io/amath585w2020/notebooks/html/fdstencil.html
 
-    x = np.array(x)  # in case a list or tuple passed in, convert to numpy array
-    n = len(x)
-    if k >=n:
-        raise ValueError('*** len(x) must be larger than k')
+#     x = np.array(x)  # in case a list or tuple passed in, convert to numpy array
+#     n = len(x)
+#     if k >=n:
+#         raise ValueError('*** len(x) must be larger than k')
         
-    A = np.ones((n,n))
-    xrow = x - xbar  # displacement vector
+#     A = np.ones((n,n))
+#     xrow = x - xbar  # displacement vector
     
-    for i in range(1,n):
-        A[i,:] = (xrow**i) / np.math.factorial(i)
+#     for i in range(1,n):
+#         A[i,:] = (xrow**i) / np.math.factorial(i)
       
-    condA = np.linalg.cond(A)  # condition number
-    if condA > 1e8:
-        print("Warning: condition number of Vandermonde matrix is approximately %.1e" % condA)
+#     condA = np.linalg.cond(A)  # condition number
+#     if condA > 1e8:
+#         print("Warning: condition number of Vandermonde matrix is approximately %.1e" % condA)
         
-    b = np.zeros(x.shape)
-    b[k] = 1.
+#     b = np.zeros(x.shape)
+#     b[k] = 1.
     
-    c = np.linalg.solve(A,b)
+#     c = np.linalg.solve(A,b)
     
-    return c
+#     return c
+
+def fdcoeffV(k,xbar,x):
+    
+    if k == 1:
+        
+        h = x[1] - x[0]
+        
+        a = -1/h
+        b =  1/h
+        
+        return np.array([a,b])
+    
+    if k == 2:
+        
+        hl = x[1] - x[0]
+        hr = x[2] - x[1]
+    
+        a = (2/(hl*hr)) * hr/(hl+hr)
+        b = (2/(hl*hr)) * hl/(hl+hr)
+        c = (2/(hl*hr)) * (-1)
+        
+        return np.array([a,c,b])
+    
 
 def solution_check(Tarr, u, x, eps, U_exact, plot=True,exact = True):
 
@@ -170,7 +193,7 @@ def solve_Burgers(T,m,eps,U_func,non_uni=False):
         t[j+1] = t[j] + k
 
         if j % 500 == 0:
-            print(f"progress:{j/np.ceil(T/k)*100}%")
+            print(f"progress:{np.round(j/np.ceil(T/k)*100,2)}%")
 
         j += 1
 
@@ -202,8 +225,12 @@ def solve_Burgers_stability_test(T,m,h,k,eps,U_func,U_dx_func,tol):
     
     return True
 
-def g(eps,a=0.085):
+def g(eps,a=0.08):
     return (1-a)*eps**3+a*eps
+
+#m = 301
+#xi = np.linspace(-1,1,m)
+#plt.plot(g(xi,0.01),np.zeros_like(xi),".")
 
 if __name__ == "__main__":
     
@@ -215,30 +242,43 @@ if __name__ == "__main__":
 
     eps = 0.01/np.pi
     T = 1.6037/np.pi
-    m = 350+1
+    m = 300+1
 
     t,U,x,h = solve_Burgers(T,m,eps,U_initial,non_uni = True)
     solution_check(t, U, x, eps, U_initial, exact = False)
     Usol = U[-1,:]
-
-    x_idx = np.argsort(abs(x))[:7]
+    
+    x_idx = np.argsort(abs(x))[:3]
     x_idx = np.sort(x_idx)
-
-    x_stencil = x[x_idx]
     
-    c = fdcoeffV(1,x_stencil[3],x_stencil[2:5])
-    Dx_0_c = c[0]*Usol[x_idx[2]]+c[1]*Usol[x_idx[3]]+c[2]*Usol[x_idx[4]]
-
-    c = fdcoeffV(1,x_stencil[3],x_stencil[3:5])
-    Dx_0_f = c[0]*Usol[x_idx[3]]+c[1]*Usol[x_idx[4]]
-
-    c = fdcoeffV(1,x_stencil[3],x_stencil[2:4])
-    Dx_0_b = c[0]*Usol[x_idx[2]]+c[1]*Usol[x_idx[3]]
-
-    c = fdcoeffV(1,x_stencil[3],x_stencil[1:6])
-    Dx_higher1 = c[0]*Usol[x_idx[1]]+c[1]*Usol[x_idx[2]]+c[2]*Usol[x_idx[3]]+c[3]*Usol[x_idx[4]]+c[4]*Usol[x_idx[5]]
+    hl = (x[x_idx[1]] - x[x_idx[0]])
+    hr = (x[x_idx[2]] - x[x_idx[1]])
     
-    print(Dx_0_b,Dx_0_c,Dx_0_f,Dx_higher1)
+    
+    Du_left    = (Usol[x_idx[1]] - Usol[x_idx[0]])/hl
+    Du_central = (Usol[x_idx[2]] - Usol[x_idx[0]])/(hr+hl)
+    Du_right   = (Usol[x_idx[2]] - Usol[x_idx[1]])/hr
+    
+    print(Du_left, Du_central, Du_right)
+    
+    # x_idx = np.argsort(abs(x))[:7]
+    # x_idx = np.sort(x_idx)
+
+    # x_stencil = x[x_idx]
+    
+    # c = fdcoeffV2(1,x_stencil[3],x_stencil[2:5])
+    # Dx_0_c = c[0]*Usol[x_idx[2]]+c[1]*Usol[x_idx[3]]+c[2]*Usol[x_idx[4]]
+
+    # c = fdcoeffV2(1,x_stencil[3],x_stencil[3:5])
+    # Dx_0_f = c[0]*Usol[x_idx[3]]+c[1]*Usol[x_idx[4]]
+
+    # c = fdcoeffV2(1,x_stencil[3],x_stencil[2:4])
+    # Dx_0_b = c[0]*Usol[x_idx[2]]+c[1]*Usol[x_idx[3]]
+
+    # c = fdcoeffV2(1,x_stencil[3],x_stencil[1:6])
+    # Dx_higher1 = c[0]*Usol[x_idx[1]]+c[1]*Usol[x_idx[2]]+c[2]*Usol[x_idx[3]]+c[3]*Usol[x_idx[4]]+c[4]*Usol[x_idx[5]]
+    
+    # print(Dx_0_b,Dx_0_c,Dx_0_f,Dx_higher1)
 
     plt.figure()
     plt.plot(x,U[-1],"-o")
