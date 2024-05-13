@@ -5,7 +5,6 @@ def Model(t,y):
     # Function from the problem description
     return y**2-y**3
 
-
 def RK32(Model,h,yn,tn,A,b,c,d):
 
     # Internal states
@@ -17,9 +16,9 @@ def RK32(Model,h,yn,tn,A,b,c,d):
     eps[0] = yn 
     k[0] = Model(tn,eps[0]) # saving function evaluation
     eps[1] = yn + A[1,0]*h*k[0]
-    k[1] = Model(tn+c[1]*h,eps[0]) # saving function evaluation
-    eps[2] = yn + h*(A[2,0]*k[1] + A[2,1]*k[2])
-    k[2] = Model(tn+c[2]*h,eps[1]) # saving function evaluation
+    k[1] = Model(tn+c[1]*h,eps[1]) # saving function evaluation
+    eps[2] = yn + h*(A[2,0]*k[0] + A[2,1]*k[1])
+    k[2] = Model(tn+c[2]*h,eps[2]) # saving function evaluation
 
     # Next step
     ynp1 = yn + h*np.dot(b,k)
@@ -33,7 +32,7 @@ def RK32(Model,h,yn,tn,A,b,c,d):
 def control_stepsize(h,tol,p,errp1):
 
     # Slide 102, week 9 IVP2 (PI controller)
-    h_opt = min(0.5,h*(tol/errp1)**(1/p))
+    h_opt = h*(tol/errp1)**(1/p)
 
     return h_opt
 
@@ -49,6 +48,8 @@ def Solve_RK32(delta,maxiter,reps,aeps):
     T = 2/delta
     iter = 0
     num_accept = 0
+    count = 0
+    reject = 0
 
     # RK23
     A = np.zeros([3,3])          # internal step weights
@@ -65,6 +66,7 @@ def Solve_RK32(delta,maxiter,reps,aeps):
         
         # Computing the RK using the current h, time tn and function evaluation yn
         ynp1, errp1 = RK32(Model,h,yn[num_accept],tn[num_accept],A,b3,c,d) 
+        count += 3
 
         # Computing the tolerance for error to adjust h
         tol = reps*np.abs(ynp1)+aeps
@@ -79,6 +81,8 @@ def Solve_RK32(delta,maxiter,reps,aeps):
             # Updating the values
             yn[num_accept] = ynp1
             tn[num_accept] = tn[num_accept-1]+h
+        else: 
+            reject += 1
         
         # Updating the step size h
         h = control_stepsize(h,tol,2,errp1) 
@@ -89,10 +93,10 @@ def Solve_RK32(delta,maxiter,reps,aeps):
         
         iter += 1
     
-    return yn[:num_accept],tn[:num_accept],iter,num_accept
+    return yn[:num_accept],tn[:num_accept],iter,num_accept,count,reject
 
 
-delta = [0.02,0.01,0.008,0.001] # from problem description     
+delta = [0.02,0.01,0.008,0.0001] # from problem description     
 maxiter = 10e5
 reps = 1e-4
 aeps = 1e-2
@@ -102,11 +106,13 @@ ax = ax.flatten()
 
 for i,d in enumerate(delta):
 
-    yn,tn,iter,num_accept = Solve_RK32(d,maxiter,reps,aeps)
+    yn,tn,iter,num_accept,count,reject = Solve_RK32(d,maxiter,reps,aeps)
     ax[i].plot(tn,yn,label=rf"$\delta$={np.round(d,5)}")
     ax[i].legend()
     ax[i].set_xlabel("t") 
     ax[i].set_ylabel("y")  
+
+    print(f"iterations: {iter},accept: {num_accept}, function values: {count},reject: {reject},delta = {d}")
 
 plt.tight_layout()
 plt.show()    
