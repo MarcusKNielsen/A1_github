@@ -199,6 +199,42 @@ def solve_Burgers(T,m,eps,U_func,non_uni=False):
 
     return t[:j],U[:j],x,h
 
+def solve_Burgers_low_memory(T,m,eps,U_func,non_uni=False):
+    
+    h = 2/(m+1)
+    k = h**2
+    
+    #print(f"Is the scheme stable? {check_stability(k,h,eps)}")
+
+    t = 0
+    
+    j = 0
+    
+    x = np.linspace(-1,1,m+2)
+
+    # Change grid if non uniform grid
+    if non_uni:
+        x = g(x)
+
+    U = U_func(x,0,eps)
+
+    while t < T:
+
+        if non_uni:
+            U = forward_time_mix_space(t,U,eps,k,h,U_func,x,non_uni=True)
+        else:
+            U = forward_time_mix_space(t,U,eps,k,h,U_func)
+
+        t += k
+
+        if j % 500 == 0:
+            print(f"progress:{np.round(j/np.ceil(T/k)*100,2)}%")
+
+        j += 1
+
+    return t,U,x,h
+
+
 def solve_Burgers_stability_test(T,m,h,k,eps,U_func,U_dx_func,tol):
     
     U = np.zeros([int(np.ceil(T/k))+2,m+2])
@@ -228,7 +264,7 @@ def solve_Burgers_stability_test(T,m,h,k,eps,U_func,U_dx_func,tol):
 def g(eps,a=0.08):
     return (1-a)*eps**3+a*eps
 
-#m = 301
+#m = 31
 #xi = np.linspace(-1,1,m)
 #plt.plot(g(xi,0.01),np.zeros_like(xi),".")
 
@@ -242,11 +278,13 @@ if __name__ == "__main__":
 
     eps = 0.01/np.pi
     T = 1.6037/np.pi
-    m = 300+1
+    m = 500+1
 
-    t,U,x,h = solve_Burgers(T,m,eps,U_initial,non_uni = True)
-    solution_check(t, U, x, eps, U_initial, exact = False)
-    Usol = U[-1,:]
+    #t,U,x,h = solve_Burgers(T,m,eps,U_initial,non_uni = True)
+    #solution_check(t, U, x, eps, U_initial, exact = False)
+    #Usol = U[-1,:]
+    
+    t,Usol,x,h = solve_Burgers_low_memory(T,m,eps,U_initial,non_uni=True)
     
     x_idx = np.argsort(abs(x))[:3]
     x_idx = np.sort(x_idx)
@@ -281,7 +319,7 @@ if __name__ == "__main__":
     # print(Dx_0_b,Dx_0_c,Dx_0_f,Dx_higher1)
 
     plt.figure()
-    plt.plot(x,U[-1],"-o")
+    plt.plot(x,Usol,"-o")
     plt.show()
     
     #%% Convergence 
