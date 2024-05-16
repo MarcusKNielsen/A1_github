@@ -237,6 +237,42 @@ def solve_Burgers_low_memory(T,m,eps,U_func,non_uni=False):
 
     return t,U,x,h,k,j
 
+def solve_Burgers_low_memory_a_input(T,m,eps,a,U_func,non_uni=False):
+    
+    if non_uni == False:
+        h = 2/(m+1)
+        k = h/(2*eps/h + 2)
+    
+    t = 0
+    
+    j = 0
+    
+    x = np.linspace(-1,1,m+2)
+
+    # Change grid if non uniform grid
+    if non_uni:
+        x = g(x,a)
+        h = np.min(x[1:] - x[:-1])
+        k = h/(2*eps/h + 2)
+    
+
+    U = U_func(x,0,eps)
+
+    while t < T:
+
+        if non_uni:
+            U = forward_time_mix_space(t,U,eps,k,h,U_func,x,non_uni=True)
+        else:
+            U = forward_time_mix_space(t,U,eps,k,h,U_func)
+
+        t += k
+
+        if j % 1000 == 0:
+            print(f"progress:{np.round(j/np.ceil(T/k)*100,2)}%")
+
+        j += 1
+
+    return t,U,x,h,k,j
 
 def solve_Burgers_stability_test(T,m,h,k,eps,U_func,U_dx_func,tol):
     
