@@ -24,7 +24,7 @@ def fdcoeffV(k,xbar,x):
         return np.array([a,c,b])
     
 
-def solution_check(Tarr, u, x, eps, U_exact, plot=True,exact = True):
+def solution_check(Tarr, u, x, eps, U_exact, plot=True, exact = True):
 
     # Computing the error 
     X,T_mesh = np.meshgrid(x,Tarr)
@@ -62,13 +62,13 @@ def solution_check(Tarr, u, x, eps, U_exact, plot=True,exact = True):
             fig.colorbar(cc, ax=ax)
 
         else:
-            fig, ax = plt.subplots(1, 1, figsize=(10, 4))
+            fig, ax = plt.subplots(1, 1, figsize=(6, 4))
             cbar_fraction = 0.05
 
             ax0 = ax.pcolormesh(X, T_mesh, u)
             ax.set_title("Numerical Solution")
-            ax.set_xlabel("x")
-            ax.set_ylabel("t")
+            ax.set_xlabel("x: space")
+            ax.set_ylabel("t: time")
             fig.colorbar(ax0, ax=ax, fraction=cbar_fraction)
 
         fig.subplots_adjust(wspace=0.5,bottom=0.2)
@@ -138,8 +138,15 @@ def check_stability(k,h,eps):
 
 def solve_Burgers(T,m,eps,U_func,non_uni=False):
     
-    h = 2/(m+1)
-    k = h**2
+    x = np.linspace(-1,1,m+2)
+    
+    if non_uni == False:
+        h = 2/(m+1)
+        k = h/(2*eps/h + 2)
+    else:
+        x = g(x)
+        h = np.min(x[1:] - x[:-1])
+        k = h/(2*eps/h + 2)
     
     #print(f"Is the scheme stable? {check_stability(k,h,eps)}")
     
@@ -147,12 +154,6 @@ def solve_Burgers(T,m,eps,U_func,non_uni=False):
 
     t = np.zeros(int(np.ceil(T/k))+2)
     j = 0
-    
-    x = np.linspace(-1,1,m+2)
-
-    # Change grid if non uniform grid
-    if non_uni:
-        x = g(x)
 
     U[0,:] = U_func(x,0,eps)
 
@@ -174,11 +175,10 @@ def solve_Burgers(T,m,eps,U_func,non_uni=False):
 
 def solve_Burgers_low_memory(T,m,eps,U_func,non_uni=False):
     
-    h = 2/(m+1)
-    k = h**2
+    if non_uni == False:
+        h = 2/(m+1)
+        k = h/(2*eps/h + 2)
     
-    #print(f"Is the scheme stable? {check_stability(k,h,eps)}")
-
     t = 0
     j = 0
     
@@ -187,6 +187,9 @@ def solve_Burgers_low_memory(T,m,eps,U_func,non_uni=False):
     # Change grid if non uniform grid
     if non_uni:
         x = g(x)
+        h = np.min(x[1:] - x[:-1])
+        k = h/(2*eps/h + 2)
+    
 
     U = U_func(x,0,eps)
 
@@ -199,13 +202,49 @@ def solve_Burgers_low_memory(T,m,eps,U_func,non_uni=False):
 
         t += k
 
-        if j % 500 == 0:
+        if j % 1000 == 0:
             print(f"progress:{np.round(j/np.ceil(T/k)*100,2)}%")
 
         j += 1
 
-    return t,U,x,h
+    return t,U,x,h,k,j
 
+def solve_Burgers_low_memory_a_input(T,m,eps,a,U_func,non_uni=False):
+    
+    if non_uni == False:
+        h = 2/(m+1)
+        k = h/(2*eps/h + 2)
+    
+    t = 0
+    
+    j = 0
+    
+    x = np.linspace(-1,1,m+2)
+
+    # Change grid if non uniform grid
+    if non_uni:
+        x = g(x,a)
+        h = np.min(x[1:] - x[:-1])
+        k = h/(2*eps/h + 2)
+    
+
+    U = U_func(x,0,eps)
+
+    while t < T:
+
+        if non_uni:
+            U = forward_time_mix_space(t,U,eps,k,h,U_func,x,non_uni=True)
+        else:
+            U = forward_time_mix_space(t,U,eps,k,h,U_func)
+
+        t += k
+
+        if j % 1000 == 0:
+            print(f"progress:{np.round(j/np.ceil(T/k)*100,2)}%")
+
+        j += 1
+
+    return t,U,x,h,k,j
 
 def solve_Burgers_stability_test(T,m,h,k,eps,U_func,U_dx_func,tol):
     
@@ -242,21 +281,25 @@ def g(eps,a=0.08):
 
 if __name__ == "__main__":
     
-    """ m = int(np.ceil(2/0.06 - 2))
-    eps = 0.1
-    Tarr, Uarr, x, h = solve_Burgers(1,m,eps,U_exact)
-    err = solution_check(Tarr, Uarr, x, eps,U_exact, plot=True)
-    """
-
+    m = 500+1
     eps = 0.01/np.pi
     T = 1.6037/np.pi
-    m = 1000+1
+    Tarr, Uarr, x, h = solve_Burgers(T,m,eps,U_initial)
+    err = solution_check(Tarr, Uarr, x, eps,U_exact, plot=True, exact=False)
+    
+    
+    
+    #%%
+    
+    eps = 0.01/np.pi
+    T = 1.6037/np.pi
+    m = 500+1
 
     #t,U,x,h = solve_Burgers(T,m,eps,U_initial,non_uni = True)
     #solution_check(t, U, x, eps, U_initial, exact = False)
     #Usol = U[-1,:]
     
-    t,Usol,x,h = solve_Burgers_low_memory(T,m,eps,U_initial,non_uni=True)
+    t,Usol,x,h,k,j = solve_Burgers_low_memory(T,m,eps,U_initial,non_uni=True)
     
     x_idx = np.argsort(abs(x))[:3]
     x_idx = np.sort(x_idx)
@@ -296,15 +339,16 @@ if __name__ == "__main__":
     #%% Convergence 
     
     T = 1.6037/np.pi
-    eps = 0.1 
-    E = [] 
-    H = [] 
+    eps = 0.1
+    E = []
+    H = []
     
-    s = np.arange(6,9)  
-    for s_i in s: 
+    s = np.arange(6,9)
+    for s_i in s:
     
         # Compute solution and error
         m = 2**s_i - 1
+        print(m)
         Tarr, Uarr, x, h = solve_Burgers(T,m,eps,U_exact,non_uni=False)
         err = solution_check(Tarr, Uarr, x, eps,U_exact, plot=False)
     
@@ -314,6 +358,8 @@ if __name__ == "__main__":
         # append mesh size 
         h = 2/(m+1)
         H.append(h)
+    
+    #%%
     
     ms = 14
     
