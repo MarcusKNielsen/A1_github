@@ -107,7 +107,7 @@ def solution_check(Tarr, u, x, eps, plot):
 if __name__ == "__main__":
 
     # Define the size of your matrix
-    m = 2**6  # Replace with the actual size of your matrix
+    m = 128 # Replace with the actual size of your matrix
     eps = 0.1
 
     Tarr, Uarr, x = solve_diffusion(m,eps)

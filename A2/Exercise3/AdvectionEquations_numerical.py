@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 #%% 3.3
 
-a_input = 0.5
+a_input = 0.9
 Cr = 0.8
 L = 1 # wave length
 Nx = 100 # Points pr wave length
@@ -15,15 +15,15 @@ N = m+2
 h = 2/(N-1)
 k = (Cr*h)/a_input
 T_wave_period = 2
-num_wave_period = 13.7
+num_wave_period = 40
 T = num_wave_period*T_wave_period # wave period is 2 and we need 40 periods, so compute until time T=80
 
 Tarr, Uarr, x = solve_advection(m,a_input,k=k,T=T)
 
-def angle_dispersion(theta,c):
-    return np.arctan(c*np.sin(theta)/(1-c*(1-np.cos(theta))))
+def angle_dispersion(xi,c):
+    return np.arctan(c*np.sin(xi)/(1-c*(1-np.cos(xi))))
 
-print(angle_dispersion(2*np.pi*h,Cr))
+print("angle dispersion",1/(2*np.pi*k)*angle_dispersion(2*np.pi*h,Cr))
 
 u_ex = u_exact(x,T,a_input)
 

@@ -81,7 +81,7 @@ def solution_check(Tarr, u, x, a, plot):
  
     # Computing error first
     err = u - uexact
-
+ 
     if plot == True:
 
         fig, ax = plt.subplots(1, 3, figsize=(10, 4))

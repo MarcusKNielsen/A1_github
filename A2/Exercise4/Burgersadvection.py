@@ -1,33 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-# def fdcoeffV(k,xbar,x):
-
-#     # Function found in:
-#     # https://rjleveque.github.io/amath585w2020/notebooks/html/fdstencil.html
-
-#     x = np.array(x)  # in case a list or tuple passed in, convert to numpy array
-#     n = len(x)
-#     if k >=n:
-#         raise ValueError('*** len(x) must be larger than k')
-        
-#     A = np.ones((n,n))
-#     xrow = x - xbar  # displacement vector
-    
-#     for i in range(1,n):
-#         A[i,:] = (xrow**i) / np.math.factorial(i)
-      
-#     condA = np.linalg.cond(A)  # condition number
-#     if condA > 1e8:
-#         print("Warning: condition number of Vandermonde matrix is approximately %.1e" % condA)
-        
-#     b = np.zeros(x.shape)
-#     b[k] = 1.
-    
-#     c = np.linalg.solve(A,b)
-    
-#     return c
-
 def fdcoeffV(k,xbar,x):
     
     if k == 1:
@@ -207,7 +180,6 @@ def solve_Burgers_low_memory(T,m,eps,U_func,non_uni=False):
     #print(f"Is the scheme stable? {check_stability(k,h,eps)}")
 
     t = 0
-    
     j = 0
     
     x = np.linspace(-1,1,m+2)
@@ -278,7 +250,7 @@ if __name__ == "__main__":
 
     eps = 0.01/np.pi
     T = 1.6037/np.pi
-    m = 500+1
+    m = 1000+1
 
     #t,U,x,h = solve_Burgers(T,m,eps,U_initial,non_uni = True)
     #solution_check(t, U, x, eps, U_initial, exact = False)
@@ -292,17 +264,16 @@ if __name__ == "__main__":
     hl = (x[x_idx[1]] - x[x_idx[0]])
     hr = (x[x_idx[2]] - x[x_idx[1]])
     
-    
     Du_left    = (Usol[x_idx[1]] - Usol[x_idx[0]])/hl
     Du_central = (Usol[x_idx[2]] - Usol[x_idx[0]])/(hr+hl)
     Du_right   = (Usol[x_idx[2]] - Usol[x_idx[1]])/hr
     
     print(Du_left, Du_central, Du_right)
     
-    # x_idx = np.argsort(abs(x))[:7]
-    # x_idx = np.sort(x_idx)
+    # x_idx = np.argsort(abs(x))[:7] 
+    # x_idx = np.sort(x_idx) 
 
-    # x_stencil = x[x_idx]
+    # x_stencil = x[x_idx] 
     
     # c = fdcoeffV2(1,x_stencil[3],x_stencil[2:5])
     # Dx_0_c = c[0]*Usol[x_idx[2]]+c[1]*Usol[x_idx[3]]+c[2]*Usol[x_idx[4]]
@@ -325,12 +296,12 @@ if __name__ == "__main__":
     #%% Convergence 
     
     T = 1.6037/np.pi
-    eps = 0.1
-    E = []
-    H = []
+    eps = 0.1 
+    E = [] 
+    H = [] 
     
-    s = np.arange(6,9)
-    for s_i in s:
+    s = np.arange(6,9)  
+    for s_i in s: 
     
         # Compute solution and error
         m = 2**s_i - 1
